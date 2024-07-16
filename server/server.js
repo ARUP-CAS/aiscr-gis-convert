@@ -6,6 +6,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const shapefile = require('shapefile');
 const TerraformerWKT = require('terraformer-wkt-parser');
+const proj4 = require('proj4');
+const fs = require('fs').promises;
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -40,11 +42,38 @@ async function convertShapefileToGeoJSON(shpPath) {
         while (!(result = await source.read()).done) {
             features.push(result.value);
         }
-        return features;
+        
+        // Čtení PRJ souboru
+        const prjPath = shpPath.replace('.shp', '.prj');
+        let epsg = null;
+        try {
+            const prjContent = await fs.readFile(prjPath, 'utf8');
+            epsg = getEPSGFromPrj(prjContent);
+        } catch (error) {
+            console.warn('Unable to read PRJ file:', error);
+        }
+
+        // Získání názvů atributů
+        const attributes = features.length > 0 ? Object.keys(features[0].properties) : [];
+
+        return { features, epsg, attributes };
     } catch (error) {
         console.error(`Error converting shapefile to GeoJSON for file ${shpPath}:`, error);
         throw error;
     }
+}
+
+// Pomocná funkce pro získání EPSG kódu z PRJ souboru
+function getEPSGFromPrj(prjContent) {
+    if (prjContent.includes('S-JTSK') || prjContent.includes('Krovak')) {
+        return '5514';
+    } else if (prjContent.includes('WGS 84') || prjContent.includes('WGS_1984')) {
+        return '4326';
+    }
+    
+    // Pokud nenajdeme známý EPSG kód, vrátíme null
+    console.warn('Unknown coordinate system in PRJ file');
+    return null;
 }
 
 // Funkce pro konverzi GeoJSON na WKT
@@ -59,29 +88,29 @@ app.post('/upload', uploader.array('shpFiles', 10), async (req, res) => {
     }
 
     try {
-        const wktResults = [];
-        const individualPolygons = [];
+        const results = [];
         for (const file of req.files) {
             if (path.extname(file.originalname) === '.shp') {
                 const shpPath = file.path;
+                const fileName = path.basename(file.originalname, '.shp');
 
-                const geojson = await convertShapefileToGeoJSON(shpPath);
-                const wkt = convertGeoJSONToWKT(geojson);
-                wktResults.push(wkt);
+                const { features, epsg, attributes } = await convertShapefileToGeoJSON(shpPath);
+                const wkt = convertGeoJSONToWKT(features);
 
-                // Přidáme názvy k jednotlivým polygonům
-                individualPolygons.push(...geojson.map((feature, index) => ({
-                    wkt: TerraformerWKT.convert(feature.geometry),
-                    name: feature.properties.nazev || `Polygon ${index + 1}`
-                })));
+                results.push({
+                    fileName,
+                    epsg,
+                    attributes,
+                    features: features.map((feature, index) => ({
+                        label: feature.properties.label || `Feature ${index + 1}`,
+                        wkt: wkt[index],
+                        properties: feature.properties
+                    }))
+                });
             }
         }
 
-        // Odpověď s WKT daty a jednotlivými polygony včetně názvů
-        res.json({
-            fullWkt: wktResults.flat().join('\n'),
-            polygons: individualPolygons
-        });
+        res.json(results);
     } catch (error) {
         console.error('Error processing files:', error);
         res.status(500).send('Error processing files.');

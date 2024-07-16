@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUpload } from '@fortawesome/free-solid-svg-icons';
 
-function FileUpload({ setWktOutput, setIndividualPolygons }) {
+function FileUpload({ setShapefileData }) {
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleFileUpload = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
 
         const fileInput = event.target.elements.formFile.files;
         if (!fileInput || fileInput.length === 0) {
             console.error('No file selected');
+            setIsLoading(false);
             return;
         }
 
@@ -20,9 +26,6 @@ function FileUpload({ setWktOutput, setIndividualPolygons }) {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/upload`, {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'Accept-Charset': 'utf-8'
-                }
             });
 
             if (!response.ok) {
@@ -30,10 +33,11 @@ function FileUpload({ setWktOutput, setIndividualPolygons }) {
             }
 
             const data = await response.json();
-            setWktOutput(data.fullWkt);
-            setIndividualPolygons(data.polygons);
+            setShapefileData(data[0]); // Předpokládáme, že server vrací pole, bereme první prvek
         } catch (error) {
             console.error('Error uploading file:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -41,15 +45,18 @@ function FileUpload({ setWktOutput, setIndividualPolygons }) {
         <Form onSubmit={handleFileUpload} encType="multipart/form-data">
             <Form.Group controlId="formFile">
                 <Form.Label>
-                    Vyber všechny dostupné soubory shapefilu
+                    Vyberte všechny dostupné soubory shapefilu
                     <br />
-                    <small className="text-muted"> (.cpg, .dbf, .prj, .sbn, .sbx, .shp, .shx, .xml)</small>
+                    <small className="text-muted">(.cpg, .dbf, .prj, .sbn, .sbx, .shp, .shx, .xml)</small>
                 </Form.Label>
                 <Form.Control type="file" name="formFile" multiple accept=".cpg,.dbf,.prj,.sbn,.sbx,.shp,.shx,.xml" />
             </Form.Group>
-            <h2 className='display-6 mt-5'>2. Konverze souborů</h2>
-            <Button variant="success" size="lg" type="submit" className='mt-2 px-5'>
-                Vytvořit WKT
+            <Button variant="primary" type="submit" disabled={isLoading} className='m-3'>
+                {isLoading ? 'Nahrávání...' : (
+                    <>
+                        <FontAwesomeIcon icon={faUpload} /> {' Nahrát soubory'}
+                    </>
+                )}
             </Button>
         </Form>
     );
