@@ -11,11 +11,12 @@ function FileUpload({ setShapefileData }) {
         setIsLoading(true);
 
         const fileInput = event.target.elements.formFile.files;
+
         if (!fileInput || fileInput.length === 0) {
             console.error('No file selected');
             setIsLoading(false);
             return;
-        }
+        } 
 
         const formData = new FormData();
         for (let i = 0; i < fileInput.length; i++) {
