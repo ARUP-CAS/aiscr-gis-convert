@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Row, Col, Table, Container } from 'react-bootstrap';
-
+import { Form, Row, Col, Table, Container, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faUndo } from '@fortawesome/free-solid-svg-icons';
 
 function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) {
     const [epsg, setEpsg] = useState('');
@@ -58,9 +57,26 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         );
     };
 
+    const handleLabelEdit = (index, newLabel) => {
+        setFeatures(prevFeatures => 
+            prevFeatures.map((feature, i) => 
+                i === index ? { ...feature, editedLabel: newLabel } : feature
+            )
+        );
+    };
+
+    const resetLabels = () => {
+        setFeatures(prevFeatures => 
+            prevFeatures.map(feature => ({
+                ...feature,
+                editedLabel: undefined
+            }))
+        );
+    };
+
     return (
         <Container>
-            <p className='lead'>Načten soubor <strong>{shapefileData.fileName}.shp</strong></p>
+            <p className='lead'>Načten soubor <strong>{shapefileData.fileName}</strong></p>
 
             <Row className="justify-content-md-center">
                 <Col lg={8} md={10} sm={12}>
@@ -85,7 +101,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                                 </Form.Text>
                             </Form.Group>
                             <Form.Group as={Col} sm={12} md={6}>
-                                <Form.Label htmlFor="labelAttribute">Atribut pro label:</Form.Label>
+                                <Form.Label htmlFor="labelAttribute">Název:</Form.Label>
                                 <Form.Select id="labelAttribute" value={labelAttribute} onChange={handleLabelAttributeChange}>
                                     <option value="">Vyberte atribut</option>
                                     {shapefileData.attributes.map(attr => (
@@ -105,7 +121,12 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                     <Table striped bordered hover responsive>
                         <thead>
                             <tr>
-                                <th>Label</th>
+                                <th>
+                                    Label
+                                    <Button variant="link" onClick={resetLabels} title="Resetovat na výchozí hodnoty">
+                                        <FontAwesomeIcon icon={faUndo} />
+                                    </Button>
+                                </th>
                                 <th>EPSG</th>
                                 <th>Export</th>
                             </tr>
@@ -113,7 +134,13 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                         <tbody>
                             {features.map((feature, index) => (
                                 <tr key={index}>
-                                    <td>{feature.properties[labelAttribute] || `Feature ${index + 1}`}</td>
+                                    <td>
+                                        <Form.Control
+                                            type="text"
+                                            value={feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[labelAttribute] || `Feature ${index + 1}`)}
+                                            onChange={(e) => handleLabelEdit(index, e.target.value)}
+                                        />
+                                    </td>
                                     <td>{epsg}</td>
                                     <td>
                                         <Form.Check

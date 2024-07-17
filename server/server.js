@@ -131,6 +131,7 @@ app.post('/upload', uploader.array('shpFiles', 10), async (req, res) => {
         const results = [];
         for (const file of req.files) {
             if (path.extname(file.originalname) === '.shp') {
+                console.log( file );
                 const shpPath = file.path;
                 const fileName = decodeText(file.originalname);
 

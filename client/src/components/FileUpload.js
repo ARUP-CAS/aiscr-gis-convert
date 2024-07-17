@@ -5,23 +5,26 @@ import { faUpload } from '@fortawesome/free-solid-svg-icons';
 
 function FileUpload({ setShapefileData }) {
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+
+    const handleFileChange = (event) => {
+        setSelectedFiles(Array.from(event.target.files));
+    };
 
     const handleFileUpload = async (event) => {
         event.preventDefault();
         setIsLoading(true);
 
-        const fileInput = event.target.elements.formFile.files;
-
-        if (!fileInput || fileInput.length === 0) {
+        if (selectedFiles.length === 0) {
             console.error('No file selected');
             setIsLoading(false);
             return;
         } 
 
         const formData = new FormData();
-        for (let i = 0; i < fileInput.length; i++) {
-            formData.append('shpFiles', fileInput[i]);
-        }
+        selectedFiles.forEach((file) => {
+            formData.append('shpFiles', file);
+        });
 
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/upload`, {
@@ -50,9 +53,20 @@ function FileUpload({ setShapefileData }) {
                     <br />
                     <small className="text-muted">(.cpg, .dbf, .prj, .sbn, .sbx, .shp, .shx, .xml)</small>
                 </Form.Label>
-                <Form.Control type="file" name="formFile" multiple accept=".cpg,.dbf,.prj,.sbn,.sbx,.shp,.shx,.xml" />
+                <Form.Control 
+                    type="file" 
+                    name="formFile" 
+                    multiple 
+                    accept=".cpg,.dbf,.prj,.sbn,.sbx,.shp,.shx,.xml" 
+                    onChange={handleFileChange}
+                />
             </Form.Group>
-            <Button variant="primary" type="submit" disabled={isLoading} className='m-3'>
+            <Button 
+                variant="primary" 
+                type="submit" 
+                disabled={isLoading || selectedFiles.length === 0} 
+                className='m-3'
+            >
                 {isLoading ? 'Nahrávání...' : (
                     <>
                         <FontAwesomeIcon icon={faUpload} /> {' Nahrát soubory'}
