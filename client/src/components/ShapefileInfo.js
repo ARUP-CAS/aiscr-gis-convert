@@ -26,7 +26,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         if (shapefileData.attributes.includes('label')) {
             setLabelAttribute('label');
         } else {
-            const suitableAttribute = shapefileData.attributes.find(attr => 
+            const suitableAttribute = shapefileData.attributes.find(attr =>
                 !['EPSG', 'geometry', 'type'].includes(attr.toLowerCase())
             );
             setLabelAttribute(suitableAttribute || '');
@@ -50,23 +50,23 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
     };
 
     const handleExportChange = (index, checked) => {
-        setFeatures(prevFeatures => 
-            prevFeatures.map((feature, i) => 
+        setFeatures(prevFeatures =>
+            prevFeatures.map((feature, i) =>
                 i === index ? { ...feature, export: checked } : feature
             )
         );
     };
 
     const handleLabelEdit = (index, newLabel) => {
-        setFeatures(prevFeatures => 
-            prevFeatures.map((feature, i) => 
+        setFeatures(prevFeatures =>
+            prevFeatures.map((feature, i) =>
                 i === index ? { ...feature, editedLabel: newLabel } : feature
             )
         );
     };
 
     const resetLabels = () => {
-        setFeatures(prevFeatures => 
+        setFeatures(prevFeatures =>
             prevFeatures.map(feature => ({
                 ...feature,
                 editedLabel: undefined
@@ -87,7 +87,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                                 <Form.Select id="epsg" value={epsg} onChange={handleEpsgChange}>
                                     <option value="">Vyberte EPSG</option>
                                     <option value="5514">
-                                        5514 (S-JTSK) 
+                                        5514 (S-JTSK)
                                     </option>
                                     <option value="4326">
                                         4326 (WGS 84)
@@ -95,8 +95,14 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                                 </Form.Select>
                                 <Form.Text id="epsgHelpBlock" muted>
                                     Povolené EPSG jsou<br />5514 (S-JTSK) a 4326 (WGS 84).
-                                    {knownEpsg && (
-                                        <><br /><FontAwesomeIcon icon={faInfoCircle} /> EPSG {knownEpsg} bylo zjištěno z SHP.</>
+                                    {knownEpsg ? (
+                                        <>
+                                            <br /><FontAwesomeIcon icon={faInfoCircle} /> EPSG {knownEpsg} bylo zjištěno z SHP.
+                                        </>
+                                    ) : (
+                                        <>
+                                            <br /><FontAwesomeIcon icon={faInfoCircle} /> V SHP nebylo zjištěno EPSG.
+                                        </>
                                     )}
                                 </Form.Text>
                             </Form.Group>

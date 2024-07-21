@@ -8,6 +8,7 @@ const shapefile = require('shapefile');
 const TerraformerWKT = require('terraformer-wkt-parser');
 const fs = require('fs').promises;
 const iconv = require('iconv-lite');
+const dbf = require('dbf');
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -41,9 +42,6 @@ function decodeText(input, encoding = 'utf-8') {
     }
     return input; // Pokud nic nefunguje, vrátíme původní vstup
 }
-function logByteValues(str) {
-    console.log("Byte values:", Array.from(str).map(char => char.charCodeAt(0).toString(16)).join(' '));
-}
 
 const uploader = multer({
     storage: multer.diskStorage({
@@ -67,15 +65,15 @@ async function convertShapefileToGeoJSON(shpPath) {
         let encoding = 'utf-8';
         try {
             encoding = await fs.readFile(cpgPath, 'utf8');
-            console.log("Detected encoding from .cpg file:", encoding);
+            //console.log("Detected encoding from .cpg file:", encoding);
         } catch (error) {
             console.warn('No .cpg file found, using default UTF-8 encoding');
         }
 
         while (!(result = await source.read()).done) {
             const originalNazev = result.value.properties.nazev;
-            console.log("Original nazev:", originalNazev);
-            console.log("Decoded nazev:", decodeText(originalNazev));
+            // console.log("Original nazev:", originalNazev);
+            // console.log("Decoded nazev:", decodeText(originalNazev));
 
             const decodedProperties = Object.fromEntries(
                 Object.entries(result.value.properties).map(([key, value]) => [
@@ -90,14 +88,7 @@ async function convertShapefileToGeoJSON(shpPath) {
             });
         }
 
-        const prjPath = shpPath.replace('.shp', '.prj');
-        let epsg = null;
-        try {
-            const prjContent = await fs.readFile(prjPath, 'utf8');
-            epsg = getEPSGFromPrj(prjContent);
-        } catch (error) {
-            console.warn('Unable to read PRJ file:', error);
-        }
+        const epsg = await getEPSG(shpPath);
 
         const attributes = features.length > 0 ? Object.keys(features[0].properties) : [];
 
@@ -106,6 +97,19 @@ async function convertShapefileToGeoJSON(shpPath) {
         console.error(`Error converting shapefile to GeoJSON for file ${shpPath}:`, error);
         throw error;
     }
+}
+
+// Funkce pro získání EPSG kódu z obsahu PRJ souboru
+async function getEPSG(shpPath) {
+    const prjPath = shpPath.replace('.shp', '.prj');
+    let epsg = null;
+    try {
+        const prjContent = await fs.readFile(prjPath, 'utf8');
+        epsg = getEPSGFromPrj(prjContent);
+    } catch (error) {
+        console.warn('Unable to read PRJ file:', error);
+    }
+    return epsg;
 }
 
 function getEPSGFromPrj(prjContent) {
@@ -122,6 +126,56 @@ function convertGeoJSONToWKT(geojson) {
     return geojson.map(feature => TerraformerWKT.convert(feature.geometry));
 }
 
+async function testShapefileOpen(shpPath) {
+    console.log("Testing shapefile open for:", shpPath);
+
+    try {
+        // Test otevření celého shapefile (SHP + DBF)
+        const source = await shapefile.open(shpPath, undefined, { encoding: 'windows-1250' });
+        console.log("Shapefile opened successfully");
+
+        // Čtení prvních několika záznamů
+        for (let i = 0; i < 3; i++) {
+            const result = await source.read();
+            if (result.done) break;
+            console.log(`Record ${i + 1}:`, result.value);
+        }
+
+        // Test otevření samotného DBF souboru
+        const dbfPath = shpPath.replace('.shp', '.dbf');
+        const dbfSource = await shapefile.openDbf(dbfPath, { encoding: 'windows-1250' });
+        console.log("DBF file opened successfully");
+
+        // Čtení prvních několika záznamů z DBF s dekódováním
+        for (let i = 0; i < 3; i++) {
+            const result = await dbfSource.read();
+            if (result.done) break;
+
+            // Dekódování českých znaků
+            const decodedProperties = {};
+            for (let key in result.value) {
+                if (typeof result.value[key] === 'string') {
+                    decodedProperties[key] = iconv.decode(Buffer.from(result.value[key], 'binary'), 'windows-1250');
+                } else {
+                    decodedProperties[key] = result.value[key];
+                }
+            }
+            
+            console.log(`DBF Record ${i + 1}:`, decodedProperties);
+        }
+
+        // Získání informací o souborech
+        const shpInfo = await fs.stat(shpPath);
+        const dbfInfo = await fs.stat(dbfPath);
+        console.log("SHP file size:", shpInfo.size, "bytes");
+        console.log("DBF file size:", dbfInfo.size, "bytes");
+
+    } catch (error) {
+        console.error("Error testing shapefile open:", error);
+    }
+}
+
+
 app.post('/upload', uploader.array('shpFiles', 10), async (req, res) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).send('No files uploaded.');
@@ -131,9 +185,12 @@ app.post('/upload', uploader.array('shpFiles', 10), async (req, res) => {
         const results = [];
         for (const file of req.files) {
             if (path.extname(file.originalname) === '.shp') {
-                console.log( file );
+
                 const shpPath = file.path;
                 const fileName = decodeText(file.originalname);
+
+                // Volání testovací funkce
+                await testShapefileOpen(shpPath);
 
                 const { features, epsg, attributes } = await convertShapefileToGeoJSON(shpPath);
                 const wkt = convertGeoJSONToWKT(features);
