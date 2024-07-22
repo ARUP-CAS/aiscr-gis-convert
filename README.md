@@ -1,24 +1,20 @@
 # Shapefile to WKT
 
-Tento projekt poskytuje nástroj pro převod shapefile souborů do WKT (Well-Known Text) formátu.
+Tento projekt poskytuje webový nástroj pro převod shapefile souborů do WKT (Well-Known Text) formátu.
 
 ## Funkce
 
-- Převod shapefile souborů do WKT formátu
-- Frontend postavený na Reactu
-- Backend postavený na Express.js
+* Nahrávání a zpracování shapefile souborů (.shp, .dbf, .prj)
+* Převod geometrie z shapefile do WKT formátu
+* Podpora pro souřadnicové systémy S-JTSK (EPSG:5514) a WGS 84 (EPSG:4326)
+* Zobrazení atributových dat spojených s geometrií
+* Uživatelsky přívětivé rozhraní postavené na React.js
+* Robustní backend API využívající Express.js
 
-## Instalace
+## Technologie
 
-1. Klonujte repozitář
-2. Nainstalujte závislosti pro frontend a backend
-3. Nastavte soubory .env
+* Frontend: React.js, Bootstrap
+* Backend: Node.js, Express.js
+* Zpracování shapefile: shapefile, dbffile
+* Další klíčové knihovny: multer (pro upload souborů), terraformer-wkt-parser (pro konverzi do WKT)
 
-## Použití
-
-- Serverové prostředí: `nodemon server.js` ze složky `/server`.
-- Vývojové prostředí: `npm start` v adresářích frontend a backend
-
-## Licence
-
-MIT
