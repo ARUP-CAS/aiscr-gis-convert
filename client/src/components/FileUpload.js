@@ -7,6 +7,8 @@ function FileUpload({ setShapefileData }) {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
 
+    const supportedExtensions = ['.shp', '.dbf', '.prj', '.cpg'];
+
     const handleFileChange = (event) => {
         setSelectedFiles(Array.from(event.target.files));
     };
@@ -51,13 +53,13 @@ function FileUpload({ setShapefileData }) {
                 <Form.Label>
                     Vyberte všechny dostupné soubory shapefilu
                     <br />
-                    <small className="text-muted">(.cpg, .dbf, .prj, .sbn, .sbx, .shp, .shx, .xml)</small>
+                    <small className="text-muted">({supportedExtensions.join(', ')})</small>
                 </Form.Label>
                 <Form.Control 
                     type="file" 
                     name="formFile" 
                     multiple 
-                    accept=".cpg,.dbf,.prj,.sbn,.sbx,.shp,.shx,.xml" 
+                    accept={supportedExtensions.join(',')}
                     onChange={handleFileChange}
                 />
             </Form.Group>
