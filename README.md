@@ -17,4 +17,4 @@ Tento projekt poskytuje webový nástroj pro převod shapefile souborů do WKT (
 * Backend: Node.js, Express.js
 * Zpracování shapefile: shapefile, dbffile
 * Další klíčové knihovny: multer (pro upload souborů), terraformer-wkt-parser (pro konverzi do WKT)
-
+ 
