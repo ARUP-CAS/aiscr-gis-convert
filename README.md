@@ -1,6 +1,10 @@
-# Shapefile to WKT
+# Konvertor z shapefile na WKT
 
 Tento projekt poskytuje webový nástroj pro převod shapefile souborů do WKT (Well-Known Text) formátu.
+
+## Adresa předprodukční verze
+
+https://shptowkt.geogrep.cz/
 
 ## Funkce
 
