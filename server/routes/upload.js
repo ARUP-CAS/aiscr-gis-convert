@@ -1,13 +1,12 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs').promises;
 const { convertShapefileToGeoJSON, convertGeoJSONToWKT } = require('../services/shapefileProcessor');
 const { decodeText } = require('../utils/textDecoder');
 const config = require('../config');
 
-
 const router = express.Router();
-
 
 // Konfigurace multer pro upload souborů
 const uploader = multer({
@@ -29,6 +28,18 @@ const uploader = multer({
         }
     }
 });
+
+// Funkce pro mazání souborů
+async function deleteFiles(files) {
+    for (const file of files) {
+        try {
+            await fs.unlink(file.path);
+            console.log(`Deleted file: ${file.path}`);
+        } catch (error) {
+            console.error(`Error deleting file ${file.path}:`, error);
+        }
+    }
+}
 
 // POST route pro upload
 router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) => {
@@ -59,9 +70,14 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
             }
         }
 
+        // Mazání souborů po zpracování
+        await deleteFiles(req.files);
+
         res.json(results);
     } catch (error) {
         console.error('Error processing files:', error);
+        // V případě chyby také smažeme nahrané soubory
+        await deleteFiles(req.files);
         res.status(500).send('Error processing files.');
     }
 });
