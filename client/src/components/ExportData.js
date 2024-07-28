@@ -1,11 +1,9 @@
 import React from 'react';
 import { Form, Button, Row, Col } from 'react-bootstrap';
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCopy } from '@fortawesome/free-solid-svg-icons';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faCopy, faDownload, faTrashAlt, faUpload } from '@fortawesome/free-solid-svg-icons';
 
-function ExportData({ exportContent, fileName }) {
+function ExportData({ exportContent, fileName, onRefresh, onReupload }) {
     const handleCopyToClipboard = () => {
         navigator.clipboard.writeText(exportContent);
     };
@@ -21,6 +19,18 @@ function ExportData({ exportContent, fileName }) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+    };
+
+    const handleRefresh = () => {
+        if (window.confirm('Opravdu chcete vyčistit všechna data? Tato akce nelze vrátit zpět.')) {
+            onRefresh();
+        }
+    };
+
+    const handleReupload = () => {
+        if (window.confirm('Opravdu chcete vyčistit data a nahrát nový soubor? Tato akce nelze vrátit zpět.')) {
+            onReupload();
         }
     };
 
@@ -42,15 +52,28 @@ function ExportData({ exportContent, fileName }) {
                             </Form.Group>
                         </Col>
                     </Row>
-                    <Row className="justify-content-center">
+                    <Row className="justify-content-center mb-3">
                         <Col md={4} sm={6} className="d-flex justify-content-center mb-2 mb-md-0">
-                            <Button onClick={handleCopyToClipboard} className="w-100">
+                            <Button variant="success" onClick={handleCopyToClipboard} className="w-100">
                                 <FontAwesomeIcon icon={faCopy} />&nbsp;Kopírovat do schránky
                             </Button>
                         </Col>
                         <Col md={4} sm={6} className="d-flex justify-content-center">
-                            <Button onClick={handleDownload} className="w-100">
+                            <Button variant="success" onClick={handleDownload} className="w-100">
                                 <FontAwesomeIcon icon={faDownload} />&nbsp;Stáhnout CSV
+                            </Button>
+                        </Col>
+                    </Row>
+                    <hr className="my-4" />
+                    <Row className="justify-content-center">
+                        <Col md={4} sm={6} className="d-flex justify-content-center mb-2 mb-md-0">
+                            <Button variant="outline-danger" onClick={() => onRefresh('refresh')} className="w-100">
+                                <FontAwesomeIcon icon={faTrashAlt} />&nbsp;Vyčistit
+                            </Button>
+                        </Col>
+                        <Col md={4} sm={6} className="d-flex justify-content-center">
+                            <Button variant="outline-primary" onClick={() => onReupload('reupload')} className="w-100">
+                                <FontAwesomeIcon icon={faUpload} />&nbsp;Vyčistit a nahrát další
                             </Button>
                         </Col>
                     </Row>

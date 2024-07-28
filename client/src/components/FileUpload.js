@@ -1,27 +1,30 @@
-import React, { useState } from 'react';
-import { Form, Button } from 'react-bootstrap';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
-function FileUpload({ setShapefileData }) {
+const FileUpload = forwardRef(({ setShapefileData }, ref) => {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const [error, setError] = useState(null);
+    const fileInputRef = useRef(null);
 
     const supportedExtensions = ['.shp', '.dbf', '.prj', '.cpg'];
 
+    useEffect(() => {
+        if (selectedFiles.length > 0) {
+            handleFileUpload();
+        }
+    }, [selectedFiles]);
+
     const handleFileChange = (event) => {
         setSelectedFiles(Array.from(event.target.files));
+        setError(null);
     };
 
-    const handleFileUpload = async (event) => {
-        event.preventDefault();
+    const handleFileUpload = async () => {
         setIsLoading(true);
-
-        if (selectedFiles.length === 0) {
-            console.error('No file selected');
-            setIsLoading(false);
-            return;
-        } 
+        setError(null);
 
         const formData = new FormData();
         selectedFiles.forEach((file) => {
@@ -42,13 +45,24 @@ function FileUpload({ setShapefileData }) {
             setShapefileData(data[0]); // Předpokládáme, že server vrací pole, bereme první prvek
         } catch (error) {
             console.error('Error uploading file:', error);
+            setError('Chyba při nahrávání souboru. Zkuste to prosím znovu.');
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Nová metoda pro otevření dialogového okna
+    const openFileDialog = () => {
+        fileInputRef.current.click();
+    };
+
+    // Zpřístupnění metody openFileDialog pro rodiče
+    useImperativeHandle(ref, () => ({
+        openFileDialog
+    }));
+
     return (
-        <Form onSubmit={handleFileUpload} encType="multipart/form-data">
+        <Form>
             <Form.Group controlId="formFile">
                 <Form.Label>
                     Vyberte všechny dostupné soubory shapefilu
@@ -56,27 +70,27 @@ function FileUpload({ setShapefileData }) {
                     <small className="text-muted">({supportedExtensions.join(', ')})</small>
                 </Form.Label>
                 <Form.Control 
+                    ref={fileInputRef}
                     type="file" 
                     name="formFile" 
                     multiple 
                     accept={supportedExtensions.join(',')}
                     onChange={handleFileChange}
+                    disabled={isLoading}
                 />
             </Form.Group>
-            <Button 
-                variant="primary" 
-                type="submit" 
-                disabled={isLoading || selectedFiles.length === 0} 
-                className='m-3'
-            >
-                {isLoading ? 'Nahrávání...' : (
-                    <>
-                        <FontAwesomeIcon icon={faUpload} /> {' Nahrát soubory'}
-                    </>
-                )}
-            </Button>
+            {isLoading && (
+                <div className="text-center mt-3">
+                    <FontAwesomeIcon icon={faSpinner} spin /> Nahrávání...
+                </div>
+            )}
+            {error && (
+                <Alert variant="danger" className="mt-3">
+                    {error}
+                </Alert>
+            )}
         </Form>
     );
-}
+});
 
 export default FileUpload;
