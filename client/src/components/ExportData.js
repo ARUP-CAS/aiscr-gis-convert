@@ -12,9 +12,14 @@ function ExportData({ exportContent, fileName, onRefresh, onReupload }) {
         const blob = new Blob([exportContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         if (link.download !== undefined) {
+            // Odstranění přípony .shp, pokud existuje
+            const cleanFileName = fileName.toLowerCase().endsWith('.shp')
+                ? fileName.slice(0, -4)
+                : fileName;
+            
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", `${fileName}.csv`);
+            link.setAttribute("download", `${cleanFileName}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
