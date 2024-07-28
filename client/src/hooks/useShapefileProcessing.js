@@ -18,9 +18,9 @@ function useShapefileProcessing() {
 
     const generateExportContent = useCallback(() => {
         if (exportSettings.epsg && exportSettings.labelAttribute && selectedFeatures.length > 0) {
-            const header = 'label,epsg,geometry';
+            const header = '"label","epsg","geometry"';
             const rows = selectedFeatures.map(feature =>
-                `${feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[exportSettings.labelAttribute] || '')},${exportSettings.epsg},${feature.wkt}`
+                `"${feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[exportSettings.labelAttribute] || '')}","${exportSettings.epsg}","${feature.wkt}"`
             );
             const content = [header, ...rows].join('\n');
             setExportContent(content);
