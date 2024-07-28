@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Table, Container, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faUndo } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faUndo, faCheck } from '@fortawesome/free-solid-svg-icons';
+
+const epsgMapping = {
+    '5514': 'S-JTSK / Krovak East North',
+    '4326': 'WGS84 - World Geodetic System 1984'
+};
+
+function getEpsgName(code) {
+    return epsgMapping[code] || 'Neznámý systém';
+}
 
 function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) {
     const [epsg, setEpsg] = useState('');
@@ -82,30 +91,33 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                 <Col lg={8} md={10} sm={12}>
                     <Form className="mb-3">
                         <Row className="mb-3">
+
                             <Form.Group as={Col} sm={12} md={6}>
                                 <Form.Label htmlFor="epsg">EPSG:</Form.Label>
-                                <Form.Select id="epsg" value={epsg} onChange={handleEpsgChange}>
-                                    <option value="">Vyberte EPSG</option>
-                                    <option value="5514">
-                                        5514 (S-JTSK)
-                                    </option>
-                                    <option value="4326">
-                                        4326 (WGS 84)
-                                    </option>
-                                </Form.Select>
-                                <Form.Text id="epsgHelpBlock" muted>
-                                    Povolené EPSG jsou<br />5514 (S-JTSK) a 4326 (WGS 84).
-                                    {knownEpsg ? (
-                                        <>
-                                            <br /><FontAwesomeIcon icon={faInfoCircle} /> EPSG {knownEpsg} bylo zjištěno z SHP.
-                                        </>
-                                    ) : (
-                                        <>
+                                {knownEpsg ? (
+                                    <div>
+                                        <p className="">
+                                            <FontAwesomeIcon icon={faCheck} className="text-success" />&nbsp;
+                                            <strong>{knownEpsg} ({getEpsgName(knownEpsg)})</strong>
+                                        </p>
+                                        <p className="d-inline-block small text-muted">Zjištěno z nahraného souboru</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Form.Select id="epsg" value={epsg} onChange={handleEpsgChange}>
+                                            <option value="">Vyberte EPSG</option>
+                                            {Object.entries(epsgMapping).map(([code, name]) => (
+                                                <option key={code} value={code}>{code} ({name})</option>
+                                            ))}
+                                        </Form.Select>
+                                        <Form.Text id="epsgHelpBlock" muted>
+                                            Povolené EPSG jsou uvedeny výše.
                                             <br /><FontAwesomeIcon icon={faInfoCircle} /> V SHP nebylo zjištěno EPSG.
-                                        </>
-                                    )}
-                                </Form.Text>
+                                        </Form.Text>
+                                    </>
+                                )}
                             </Form.Group>
+
                             <Form.Group as={Col} sm={12} md={6}>
                                 <Form.Label htmlFor="labelAttribute">Název:</Form.Label>
                                 <Form.Select id="labelAttribute" value={labelAttribute} onChange={handleLabelAttributeChange}>
