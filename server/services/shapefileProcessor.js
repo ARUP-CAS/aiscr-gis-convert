@@ -17,7 +17,8 @@ async function convertShapefileToGeoJSON(shpPath) {
         const cpgPath = shpPath.replace('.shp', '.cpg');
         let encoding = config.DEFAULT_ENCODING;
         try {
-            encoding = await fs.readFile(cpgPath, 'utf8');
+            const cpgContent = await fs.readFile(cpgPath, 'utf8');
+            encoding = cpgContent.trim();
             console.log(`Using encoding from CPG file: ${encoding}`);
         } catch (error) {
             console.warn('No .cpg file found, using default encoding:', encoding);

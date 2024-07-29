@@ -1,3 +1,5 @@
+// V souboru epsgHelper.js
+
 const fs = require('fs').promises;
 const config = require('../config');
 
@@ -21,7 +23,7 @@ async function getEPSG(shpPath) {
         }
 
     } catch (error) {
-        console.error('Chyba při čtení PRJ souboru:', error);
+        console.warn('PRJ soubor nebyl nalezen nebo nelze přečíst. EPSG kód nebyl určen.');
     }
 
     return epsg;

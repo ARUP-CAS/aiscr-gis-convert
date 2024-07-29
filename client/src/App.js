@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useCallback } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container } from 'react-bootstrap';
@@ -13,7 +14,7 @@ import useAlertModal from './hooks/useAlertModal';
 function App() {
     const {
         shapefileData,
-        setShapefileData,
+        setShapefileData: originalSetShapefileData,
         exportContent,
         fileUploadRef,
         handleExportSettingsChange,
@@ -24,6 +25,11 @@ function App() {
 
     const { alertModal, showAlert, hideAlert, confirmAction } = useAlertModal();
 
+    const setShapefileData = useCallback((data) => {
+        console.log('Setting shapefile data:', data);
+        originalSetShapefileData(data);
+    }, [originalSetShapefileData]);
+    
     return (
         <div className="App d-flex flex-column min-vh-100">
             <Container fluid className="App">

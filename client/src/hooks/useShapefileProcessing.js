@@ -8,6 +8,21 @@ function useShapefileProcessing() {
     const [exportContent, setExportContent] = useState('');
     const fileUploadRef = useRef(null);
 
+    const handleSetShapefileData = useCallback((data) => {
+        setShapefileData(data);
+        // Automaticky nastavit EPSG a labelAttribute, pokud jsou k dispozici
+        if (data && data.epsg) {
+            setExportSettings(prev => ({ ...prev, epsg: data.epsg }));
+        }
+        if (data && data.attributes && data.attributes.length > 0) {
+            setExportSettings(prev => ({ ...prev, labelAttribute: data.attributes[0] }));
+        }
+        // Nastavit vybrané features
+        if (data && data.features) {
+            setSelectedFeatures(data.features);
+        }
+    }, []);
+
     const handleExportSettingsChange = useCallback((settings) => {
         setExportSettings(settings);
     }, []);
@@ -50,7 +65,7 @@ function useShapefileProcessing() {
 
     return {
         shapefileData,
-        setShapefileData,
+        setShapefileData: handleSetShapefileData,
         exportSettings,
         selectedFeatures,
         exportContent,

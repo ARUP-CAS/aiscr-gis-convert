@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Row, Col, Table, Container, Button } from 'react-bootstrap';
+import { Form, Row, Col, Table, Container, Button, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faUndo, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faInfoCircle, faUndo, faCheck } from '@fortawesome/free-solid-svg-icons';
 
 const epsgMapping = {
     '5514': 'S-JTSK / Krovak East North',
@@ -87,6 +87,36 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         <Container>
             <p className='lead'>Načten soubor <strong>{shapefileData.fileName}</strong></p>
 
+            <Row className="justify-content-md-center mb-3">
+                <Col lg={8} md={10} sm={12}>
+                    <Table striped bordered hover size="sm">
+                        <thead>
+                            <tr>
+                                <th>Soubor</th>
+                                <th>Stav</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(shapefileData.uploadedFiles).map(([ext, uploaded]) => (
+                                <tr key={ext}>
+                                    <td>{ext.toUpperCase()}</td>
+                                    <td>
+                                        {uploaded ? (
+                                            <FontAwesomeIcon icon={faCheck} className="text-success" />
+                                        ) : (
+                                            <FontAwesomeIcon icon={faExclamationTriangle} className="text-warning" />
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                    {shapefileData.warning && (
+                        <Alert variant="warning">{shapefileData.warning}</Alert>
+                    )}
+                </Col>
+            </Row>
+
             <Row className="justify-content-md-center">
                 <Col lg={8} md={10} sm={12}>
                     <Form className="mb-3">
@@ -134,6 +164,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                     </Form>
                 </Col>
             </Row>
+
             <Row className="justify-content-md-center py-3">
                 <Col lg={9} md={12}>
                     <Table striped bordered hover responsive>

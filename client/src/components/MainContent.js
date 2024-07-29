@@ -15,12 +15,20 @@ function MainContent({
     onReupload,
     fileUploadRef
 }) {
+    const handleReset = () => {
+        setShapefileData(null);
+    };
+
     return (
         <>
             <Row className="justify-content-md-center pt-4">
                 <Col md="auto">
                     <h2 className='display-6'>1. Nahrát soubory SHP</h2>
-                    <FileUpload setShapefileData={setShapefileData} ref={fileUploadRef} />
+                    <FileUpload 
+                        setShapefileData={setShapefileData} 
+                        ref={fileUploadRef}
+                        onReset={handleReset}
+                    />
                 </Col>
             </Row>
 

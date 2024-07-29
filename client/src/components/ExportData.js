@@ -27,18 +27,6 @@ function ExportData({ exportContent, fileName, onRefresh, onReupload }) {
         }
     };
 
-    const handleRefresh = () => {
-        if (window.confirm('Opravdu chcete vyčistit všechna data? Tato akce nelze vrátit zpět.')) {
-            onRefresh();
-        }
-    };
-
-    const handleReupload = () => {
-        if (window.confirm('Opravdu chcete vyčistit data a nahrát nový soubor? Tato akce nelze vrátit zpět.')) {
-            onReupload();
-        }
-    };
-
     return (
         <div>
             {exportContent ? (

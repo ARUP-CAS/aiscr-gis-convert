@@ -44,36 +44,63 @@ async function deleteFiles(files) {
 // POST route pro upload
 router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) => {
     if (!req.files || req.files.length === 0) {
-        return res.status(400).send('No files uploaded.');
+        return res.status(400).json({ error: 'No files uploaded.' });
+    }
+
+    const shpFile = req.files.find(file => path.extname(file.originalname).toLowerCase() === '.shp');
+    const dbfFile = req.files.find(file => path.extname(file.originalname).toLowerCase() === '.dbf');
+    const prjFile = req.files.find(file => path.extname(file.originalname).toLowerCase() === '.prj');
+    const cpgFile = req.files.find(file => path.extname(file.originalname).toLowerCase() === '.cpg');
+
+    if (!shpFile || !dbfFile) {
+        await deleteFiles(req.files);
+        return res.status(400).json({ error: 'Missing required .shp or .dbf file.' });
+    }
+
+    let warning = null;
+    if (!prjFile || !cpgFile) {
+        warning = 'Některé volitelné soubory chybí. Kodování nebo souřadnicový systém mohou být nastaveny na výchozí hodnoty.';
+    }
+
+    if (req.files.length > 4) {
+        warning = (warning ? warning + ' ' : '') + 'Byly nahrány nadbytečné soubory, které nebudou použity.';
     }
 
     try {
         const results = [];
-        for (const file of req.files) {
-            if (path.extname(file.originalname) === '.shp') {
-                const shpPath = file.path;
-                const fileName = decodeText(file.originalname);
+        const shpPath = shpFile.path;
+        const fileName = decodeText(shpFile.originalname);
 
-                const { features, epsg, attributes } = await convertShapefileToGeoJSON(shpPath);
-                const wkt = convertGeoJSONToWKT(features);
+        const { features, epsg, attributes } = await convertShapefileToGeoJSON(shpPath);
+        const wkt = convertGeoJSONToWKT(features);
 
-                results.push({
-                    fileName,
-                    epsg,
-                    attributes,
-                    features: features.map((feature, index) => ({
-                        label: feature.properties.label || `Feature ${index + 1}`,
-                        wkt: wkt[index],
-                        properties: feature.properties
-                    }))
-                });
-            }
-        }
+        results.push({
+            fileName,
+            epsg,
+            attributes,
+            features: features.map((feature, index) => ({
+                label: feature.properties.label || `Feature ${index + 1}`,
+                wkt: wkt[index],
+                properties: feature.properties
+            }))
+        });
 
         // Mazání souborů po zpracování
         await deleteFiles(req.files);
 
-        res.json(results);
+        res.json({
+            fileName: fileName,
+            epsg,
+            attributes,
+            features,
+            warning,
+            uploadedFiles: {
+                shp: !!shpFile,
+                dbf: !!dbfFile,
+                prj: !!prjFile,
+                cpg: !!cpgFile
+            }
+        });
     } catch (error) {
         console.error('Error processing files:', error);
         // V případě chyby také smažeme nahrané soubory
@@ -81,5 +108,7 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
         res.status(500).send('Error processing files.');
     }
 });
+
+module.exports = router;
 
 module.exports = router;
