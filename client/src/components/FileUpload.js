@@ -5,77 +5,92 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import FileUploadError from './FileUploadError';
 import FileUploadSelection from './FileUploadSelection';
 
+// Komponenta pro nahrávání shapefile souborů
+// Umožňuje výběr souborů, kontrolu jejich úplnosti a nahrání na server
 const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
+    // Stav pro indikaci probíhajícího nahrávání
     const [isLoading, setIsLoading] = useState(false);
+    // Seznam vybraných souborů
     const [selectedFiles, setSelectedFiles] = useState([]);
+    // Objekt obsahující případné chyby
     const [errors, setErrors] = useState(null);
+    // Seznam kompletních datasetů (obsahují všechny povinné soubory)
     const [completeDatasets, setCompleteDatasets] = useState([]);
+    // Reference na input element pro výběr souborů
     const fileInputRef = useRef(null);
 
+    // Definice povinných a volitelných přípon souborů
     const requiredExtensions = ['.shp', '.dbf'];
     const optionalExtensions = ['.prj', '.cpg'];
     const allSupportedExtensions = [...requiredExtensions, ...optionalExtensions];
 
+    // Funkce volaná při změně vybraných souborů
     const handleFileChange = (event) => {
+        // Převedení FileList na pole
         const files = Array.from(event.target.files);
-        console.log('Files selected:', files.map(f => f.name));
+        // Aktualizace stavu s novými soubory
         setSelectedFiles(files);
+        // Vymazání případných předchozích chyb
         setErrors(null);
+        // Vymazání seznamu kompletních datasetů
         setCompleteDatasets([]);
-        onReset(); // Reset stavu v nadřazené komponentě
+        // Volání funkce pro reset stavu v nadřazené komponentě
+        onReset();
     };
 
+    // Funkce pro nahrání souborů na server
     const uploadFiles = useCallback(async (datasetName, datasetFiles) => {
-        console.log('uploadFiles called with:', datasetName, datasetFiles);
         setIsLoading(true);
         setErrors(null);
 
+        // Kontrola, zda byly vybrány nějaké soubory
         if (!datasetFiles || datasetFiles.length === 0) {
-            console.error('No files to upload');
             setErrors({ 'Chyba': ['Nebyly vybrány žádné soubory pro nahrání'] });
             setIsLoading(false);
             return;
         }
 
+        // Vytvoření FormData objektu pro odeslání souborů
         const formData = new FormData();
         datasetFiles.forEach((file) => {
             formData.append('shpFiles', file);
         });
 
         try {
-            console.log('Sending fetch request to:', `${process.env.REACT_APP_API_URL}/upload`);
+            // Odeslání požadavku na server
             const response = await fetch(`${process.env.REACT_APP_API_URL}/upload`, {
                 method: 'POST',
                 body: formData,
             });
 
             if (!response.ok) {
-                throw new Error('Failed to upload file');
+                throw new Error('Nahrávání souboru selhalo');
             }
 
+            // Zpracování odpovědi ze serveru
             const data = await response.json();
-            console.log('Received data from server:', data);
+            // Aktualizace stavu shapefile dat v nadřazené komponentě
             setShapefileData(data);
         } catch (error) {
-            console.error('Error uploading file:', error);
+            // Nastavení chybového stavu při selhání nahrávání
             setErrors({ 'Chyba serveru': ['Zkuste to prosím znovu'] });
         } finally {
+            // Resetování stavů po dokončení nahrávání
             setIsLoading(false);
             setSelectedFiles([]);
             setCompleteDatasets([]);
         }
     }, [setShapefileData]);
 
+    // Funkce pro zpracování nahrávání souborů
     const handleFileUpload = useCallback(async () => {
-        console.log('handleFileUpload called');
-        if (isLoading) {
-            console.log('Upload already in progress, skipping');
-            return;
-        }
-    
+        if (isLoading) return;
+
         setIsLoading(true);
         setErrors(null);
-    
+        setCompleteDatasets([]);
+
+        // Vytvoření objektu s datasety
         const datasets = {};
         selectedFiles.forEach(file => {
             const fileName = file.name.toLowerCase();
@@ -87,9 +102,8 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
             }
             datasets[baseName].add(extension);
         });
-    
-        console.log('Datasets:', datasets);
-    
+
+        // Kontrola úplnosti datasetů
         const incompleteDatasets = {};
         const complete = [];
         Object.entries(datasets).forEach(([baseName, extensions]) => {
@@ -100,77 +114,78 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
                 complete.push(baseName);
             }
         });
-    
-        console.log('Complete datasets:', complete);
-        console.log('Incomplete datasets:', incompleteDatasets);
-    
+
+        setCompleteDatasets(complete);
+
         if (complete.length === 0) {
-            console.log('No complete datasets found');
+            // Žádné kompletní datasety, nastavení chybového stavu
             setErrors(incompleteDatasets);
             setIsLoading(false);
             return;
         }
-    
+
         if (complete.length === 1) {
-            console.log('One complete dataset found, uploading...');
+            // Jeden kompletní dataset, automatické nahrání
             const datasetName = complete[0];
             const datasetFiles = selectedFiles.filter(file =>
                 file.name.toLowerCase().startsWith(datasetName.toLowerCase())
             );
             await uploadFiles(datasetName, datasetFiles);
         } else {
-            console.log('Multiple complete datasets found, waiting for user selection');
-            setCompleteDatasets(complete);
+            // Více kompletních datasetů, čekání na výběr uživatele
+            setIsLoading(false);
         }
-        
-        setIsLoading(false);
     }, [isLoading, selectedFiles, requiredExtensions, uploadFiles]);
 
+
+    // Effect hook pro spuštění nahrávání při změně vybraných souborů
     useEffect(() => {
-        console.log('useEffect triggered', { selectedFiles: selectedFiles.length, isLoading, completeDatasets: completeDatasets.length });
-        if (selectedFiles.length > 0 && !isLoading && completeDatasets.length === 0) {
+        if (selectedFiles.length > 0 && !isLoading && completeDatasets.length === 0 && !errors) {
             handleFileUpload();
         }
-    }, [selectedFiles, handleFileUpload, isLoading, completeDatasets]);
+    }, [selectedFiles, handleFileUpload, isLoading, completeDatasets, errors]);
 
+    // Funkce pro zpracování výběru datasetu uživatelem
     const handleSelectDataset = (datasetName) => {
-        console.log('handleSelectDataset called with:', datasetName);
+        // Filtrování souborů pro vybraný dataset
         const datasetFiles = selectedFiles.filter(file =>
             file.name.toLowerCase().startsWith(datasetName.toLowerCase())
         );
-    
-        console.log('Filtered datasetFiles:', datasetFiles);
-    
+
+        // Kontrola přítomnosti všech povinných souborů
         const hasRequiredFiles = requiredExtensions.every(ext =>
             datasetFiles.some(file => file.name.toLowerCase().endsWith(ext))
         );
-    
-        console.log('hasRequiredFiles:', hasRequiredFiles);
-    
+
         if (!hasRequiredFiles) {
+            // Nalezení chybějících souborů
             const missingFiles = requiredExtensions.filter(ext =>
                 !datasetFiles.some(file => file.name.toLowerCase().endsWith(ext))
             );
-            console.log('Missing files:', missingFiles);
+            // Nastavení chybového stavu
             setErrors({
                 [datasetName]: missingFiles
             });
             return;
         }
-    
-        console.log('Calling uploadFiles with:', datasetName, datasetFiles);
+
+        // Nahrání vybraného datasetu
         uploadFiles(datasetName, datasetFiles);
-        setCompleteDatasets([]); // Reset completeDatasets after selection
+        // Reset seznamu kompletních datasetů
+        setCompleteDatasets([]);
     };
 
+    // Funkce pro otevření dialogu pro výběr souborů
     const openFileDialog = () => {
         fileInputRef.current.click();
     };
 
+    // Zpřístupnění metody openFileDialog pro nadřazenou komponentu
     useImperativeHandle(ref, () => ({
         openFileDialog
     }));
 
+    // Renderování komponenty
     return (
         <div>
             <Form.Group controlId="formFile">

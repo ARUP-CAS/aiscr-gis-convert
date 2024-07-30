@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,7 +10,9 @@ import Footer from './components/Footer';
 import useShapefileProcessing from './hooks/useShapefileProcessing';
 import useAlertModal from './hooks/useAlertModal';
 
+// Hlavní komponenta aplikace
 function App() {
+    // Použití custom hooku pro zpracování shapefile dat
     const {
         shapefileData,
         setShapefileData: originalSetShapefileData,
@@ -23,29 +24,36 @@ function App() {
         handleReupload
     } = useShapefileProcessing();
 
+    // Použití custom hooku pro zobrazení alert modalu
     const { alertModal, showAlert, hideAlert, confirmAction } = useAlertModal();
 
+    // Wrapper pro setShapefileData s logováním
     const setShapefileData = useCallback((data) => {
-        console.log('Setting shapefile data:', data);
         originalSetShapefileData(data);
     }, [originalSetShapefileData]);
-    
+
     return (
         <div className="App d-flex flex-column min-vh-100">
             <Container fluid className="App">
+                {/* Komponenta pro zobrazení hlavičky */}
                 <Hero />
-                <MainContent 
+                {/* Hlavní obsah aplikace */}
+                <MainContent
                     shapefileData={shapefileData}
                     setShapefileData={setShapefileData}
                     exportContent={exportContent}
                     onExportSettingsChange={handleExportSettingsChange}
                     onFeatureSelection={handleFeatureSelection}
+                    // Zobrazení potvrzovacího dialogu při pokusu o smazání dat
                     onRefresh={() => showAlert('Potvrzení', 'Opravdu chcete vše smazat? Aktuální data budou nevratně ztracena.', 'refresh')}
+                    // Zobrazení potvrzovacího dialogu při pokusu o nahrání nového souboru
                     onReupload={() => showAlert('Potvrzení', 'Opravdu chcete vymazat aktuální data a nahrát nový soubor?', 'reupload')}
                     fileUploadRef={fileUploadRef}
                 />
             </Container>
+            {/* Patička aplikace */}
             <Footer />
+            {/* Modální okno pro potvrzení akcí */}
             <AlertModal
                 show={alertModal.show}
                 onHide={hideAlert}

@@ -3,21 +3,26 @@ import { Form, Row, Col, Table, Container, Button, Alert } from 'react-bootstrap
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faInfoCircle, faUndo, faCheck } from '@fortawesome/free-solid-svg-icons';
 
+// Mapování EPSG kódů na jejich názvy
 const epsgMapping = {
     '5514': 'S-JTSK / Krovak East North',
     '4326': 'WGS84 - World Geodetic System 1984'
 };
 
+// Funkce pro získání názvu EPSG systému podle kódu
 function getEpsgName(code) {
     return epsgMapping[code] || 'Neznámý systém';
 }
 
+// Komponenta pro zobrazení informací o shapefilu
 function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) {
+    // State pro EPSG kód, atribut pro label a features
     const [epsg, setEpsg] = useState('');
     const [labelAttribute, setLabelAttribute] = useState('');
     const [features, setFeatures] = useState(shapefileData.features || []);
     const [knownEpsg, setKnownEpsg] = useState(null);
 
+    // Effect pro inicializaci EPSG a label atributu
     useEffect(() => {
         let newEpsg = '';
         if (shapefileData.epsg) {
@@ -32,6 +37,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         }
         setEpsg(newEpsg);
 
+        // Nastavení výchozího atributu pro label
         if (shapefileData.attributes.includes('label')) {
             setLabelAttribute('label');
         } else {
@@ -42,14 +48,17 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         }
     }, [shapefileData]);
 
+    // Effect pro aktualizaci nastavení exportu
     useEffect(() => {
         onSettingsChange({ epsg, labelAttribute });
     }, [epsg, labelAttribute, onSettingsChange]);
 
+    // Effect pro aktualizaci vybraných features
     useEffect(() => {
         onFeatureSelection(features.filter(feature => feature.export !== false));
     }, [features, onFeatureSelection]);
 
+    // Handlery pro změnu EPSG a label atributu
     const handleEpsgChange = (e) => {
         setEpsg(e.target.value);
     };
@@ -58,6 +67,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         setLabelAttribute(e.target.value);
     };
 
+    // Handler pro změnu exportu feature
     const handleExportChange = (index, checked) => {
         setFeatures(prevFeatures =>
             prevFeatures.map((feature, i) =>
@@ -66,6 +76,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         );
     };
 
+    // Handler pro úpravu labelu feature
     const handleLabelEdit = (index, newLabel) => {
         setFeatures(prevFeatures =>
             prevFeatures.map((feature, i) =>
@@ -74,6 +85,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         );
     };
 
+    // Funkce pro reset labelů na výchozí hodnoty
     const resetLabels = () => {
         setFeatures(prevFeatures =>
             prevFeatures.map(feature => ({
@@ -87,6 +99,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         <Container>
             <p className='lead'>Načten soubor <strong>{shapefileData.fileName}</strong></p>
 
+            {/* Tabulka s informacemi o nahraných souborech */}
             <Row className="justify-content-md-center mb-3">
                 <Col lg={8} md={10} sm={12}>
                     <Table striped bordered hover size="sm">
@@ -117,11 +130,11 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                 </Col>
             </Row>
 
+            {/* Formulář pro nastavení EPSG a label atributu */}
             <Row className="justify-content-md-center">
                 <Col lg={8} md={10} sm={12}>
                     <Form className="mb-3">
                         <Row className="mb-3">
-
                             <Form.Group as={Col} sm={12} md={6}>
                                 <Form.Label htmlFor="epsg">EPSG:</Form.Label>
                                 {knownEpsg ? (
@@ -165,6 +178,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                 </Col>
             </Row>
 
+            {/* Tabulka s features */}
             <Row className="justify-content-md-center py-3">
                 <Col lg={9} md={12}>
                     <Table striped bordered hover responsive>
