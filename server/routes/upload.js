@@ -94,6 +94,11 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
             attributes,
             features,
             warning,
+            features: features.map((feature, index) => ({
+                label: feature.properties.label || `Feature ${index + 1}`,
+                wkt: wkt[index],
+                properties: feature.properties
+            })),
             uploadedFiles: {
                 shp: !!shpFile,
                 dbf: !!dbfFile,
