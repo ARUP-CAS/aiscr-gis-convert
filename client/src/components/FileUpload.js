@@ -4,6 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import FileUploadError from './FileUploadError';
 import FileUploadSelection from './FileUploadSelection';
+import { MAX_FILE_SIZE, SUPPORTED_EXTENSIONS } from '../config';
+import { validateFileSize, validateFileType, groupFilesByDataset, checkDatasetCompleteness } from '../utils/fileUtils';
 
 // Komponenta pro nahrávání shapefile souborů
 // Umožňuje výběr souborů, kontrolu jejich úplnosti a nahrání na server
@@ -26,122 +28,122 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
 
     // Funkce volaná při změně vybraných souborů
     const handleFileChange = (event) => {
-        // Převedení FileList na pole
         const files = Array.from(event.target.files);
-        // Aktualizace stavu s novými soubory
-        setSelectedFiles(files);
-        // Vymazání případných předchozích chyb
-        setErrors(null);
-        // Vymazání seznamu kompletních datasetů
-        setCompleteDatasets([]);
-        // Volání funkce pro reset stavu v nadřazené komponentě
-        onReset();
-    };
-
-    // Funkce pro nahrání souborů na server
-    const uploadFiles = useCallback(async (datasetName, datasetFiles) => {
-        setIsLoading(true);
-        setErrors(null);
-
-        // Kontrola, zda byly vybrány nějaké soubory
-        if (!datasetFiles || datasetFiles.length === 0) {
-            setErrors({ 'Chyba': ['Nebyly vybrány žádné soubory pro nahrání'] });
-            setIsLoading(false);
+        
+        // Kontrola velikosti a typu souborů
+        const invalidFiles = files.filter(file => !validateFileSize(file) || !validateFileType(file));
+        
+        if (invalidFiles.length > 0) {
+            setErrors({
+                'Invalid Files': invalidFiles.map(file => 
+                    `${file.name} (${!validateFileSize(file) ? 'příliš velký' : 'nepodporovaný typ'})`
+                )
+            });
+            setSelectedFiles([]);
+            setCompleteDatasets([]);
             return;
         }
 
-        // Vytvoření FormData objektu pro odeslání souborů
-        const formData = new FormData();
-        datasetFiles.forEach((file) => {
-            formData.append('shpFiles', file);
-        });
+        setSelectedFiles(files);
+        setErrors(null);
+        setCompleteDatasets([]);
+        onReset();
 
-        try {
-            // Odeslání požadavku na server
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/upload`, {
-                method: 'POST',
-                body: formData,
-            });
+        // Automaticky spustit nahrávání, pokud jsou soubory validní
+        handleFileUpload(files);
+    };
 
-            if (!response.ok) {
-                throw new Error('Nahrávání souboru selhalo');
+    // Funkce pro nahrání souborů na server
+    const uploadFiles = useCallback(
+        async (datasetName, datasetFiles) => {
+            setIsLoading(true);
+            setErrors(null);
+
+            // Kontrola, zda byly vybrány nějaké soubory
+            if (!datasetFiles || datasetFiles.length === 0) {
+                setErrors({ 'Chyba': ['Nebyly vybrány žádné soubory pro nahrání'] });
+                setIsLoading(false);
+                return;
             }
 
-            // Zpracování odpovědi ze serveru
-            const data = await response.json();
-            // Aktualizace stavu shapefile dat v nadřazené komponentě
-            setShapefileData(data);
-        } catch (error) {
-            // Nastavení chybového stavu při selhání nahrávání
-            setErrors({ 'Chyba serveru': ['Zkuste to prosím znovu'] });
-        } finally {
-            // Resetování stavů po dokončení nahrávání
-            setIsLoading(false);
-            setSelectedFiles([]);
-            setCompleteDatasets([]);
-        }
-    }, [setShapefileData]);
+            // Vytvoření FormData objektu pro odeslání souborů
+            const formData = new FormData();
+            datasetFiles.forEach((file) => {
+                formData.append('shpFiles', file);
+            });
+
+            try {
+                // Odeslání požadavku na server
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Nahrávání souboru selhalo');
+                }
+
+                // Zpracování odpovědi ze serveru
+                const data = await response.json();
+                // Aktualizace stavu shapefile dat v nadřazené komponentě
+                setShapefileData(data);
+            } catch (error) {
+                // Nastavení chybového stavu při selhání nahrávání
+                setErrors({ 'Chyba serveru': ['Zkuste to prosím znovu'] });
+            } finally {
+                // Resetování stavů po dokončení nahrávání
+                setIsLoading(false);
+                setSelectedFiles([]);
+                setCompleteDatasets([]);
+            }
+        }, [setShapefileData]
+    );
 
     // Funkce pro zpracování nahrávání souborů
-    const handleFileUpload = useCallback(async () => {
+    const handleFileUpload = useCallback(async (filesToUpload) => {
         if (isLoading) return;
 
         setIsLoading(true);
         setErrors(null);
-        setCompleteDatasets([]);
 
-        // Vytvoření objektu s datasety
-        const datasets = {};
-        selectedFiles.forEach(file => {
-            const fileName = file.name.toLowerCase();
-            const lastDotIndex = fileName.lastIndexOf('.');
-            const baseName = fileName.substring(0, lastDotIndex);
-            const extension = fileName.substring(lastDotIndex);
-            if (!datasets[baseName]) {
-                datasets[baseName] = new Set();
-            }
-            datasets[baseName].add(extension);
-        });
-
-        // Kontrola úplnosti datasetů
+        const datasets = groupFilesByDataset(filesToUpload);
+        
         const incompleteDatasets = {};
         const complete = [];
+        
         Object.entries(datasets).forEach(([baseName, extensions]) => {
-            const missingFiles = requiredExtensions.filter(ext => !extensions.has(ext));
-            if (missingFiles.length > 0) {
-                incompleteDatasets[baseName] = missingFiles;
-            } else {
+            if (checkDatasetCompleteness(extensions)) {
                 complete.push(baseName);
+            } else {
+                incompleteDatasets[baseName] = SUPPORTED_EXTENSIONS.required.filter(ext => !extensions.has(ext));
             }
         });
 
         setCompleteDatasets(complete);
 
         if (complete.length === 0) {
-            // Žádné kompletní datasety, nastavení chybového stavu
             setErrors(incompleteDatasets);
             setIsLoading(false);
             return;
         }
 
         if (complete.length === 1) {
-            // Jeden kompletní dataset, automatické nahrání
             const datasetName = complete[0];
-            const datasetFiles = selectedFiles.filter(file =>
+            const datasetFiles = filesToUpload.filter(file =>
                 file.name.toLowerCase().startsWith(datasetName.toLowerCase())
             );
             await uploadFiles(datasetName, datasetFiles);
         } else {
-            // Více kompletních datasetů, čekání na výběr uživatele
             setIsLoading(false);
         }
-    }, [isLoading, selectedFiles, requiredExtensions, uploadFiles]);
+    }, [isLoading, uploadFiles]);
 
 
+    
     // Effect hook pro spuštění nahrávání při změně vybraných souborů
     useEffect(() => {
         if (selectedFiles.length > 0 && !isLoading && completeDatasets.length === 0 && !errors) {
-            handleFileUpload();
+            handleFileUpload(selectedFiles);
         }
     }, [selectedFiles, handleFileUpload, isLoading, completeDatasets, errors]);
 
@@ -176,9 +178,19 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
     };
 
     // Funkce pro otevření dialogu pro výběr souborů
-    const openFileDialog = () => {
+    const openFileDialog = useCallback(() => {
         fileInputRef.current.click();
-    };
+    }, []);
+
+    const resetFileInput = useCallback(() => {
+        setErrors(null);
+        setSelectedFiles([]);
+        setCompleteDatasets([]);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = null;
+        }
+        openFileDialog();
+    }, []);
 
     // Zpřístupnění metody openFileDialog pro nadřazenou komponentu
     useImperativeHandle(ref, () => ({
@@ -192,16 +204,18 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
                 <Form.Label>
                     Vyberte soubory shapefilu
                     <br />
-                    <small className="text-muted">Povinné: {requiredExtensions.join(', ')}</small>
+                    <small className="text-muted">Povinné: {SUPPORTED_EXTENSIONS.required.join(', ')}</small>
                     <br />
-                    <small className="text-muted">Doporučené: {optionalExtensions.join(', ')}</small>
+                    <small className="text-muted">Doporučené: {SUPPORTED_EXTENSIONS.optional.join(', ')}</small>
+                    <br />
+                    <small className="text-muted">Maximální velikost souboru: {MAX_FILE_SIZE / (1024 * 1024)} MB</small>
                 </Form.Label>
                 <Form.Control
                     ref={fileInputRef}
                     type="file"
                     name="formFile"
                     multiple
-                    accept={allSupportedExtensions.join(',')}
+                    accept={[...SUPPORTED_EXTENSIONS.required, ...SUPPORTED_EXTENSIONS.optional].join(',')}
                     onChange={handleFileChange}
                     disabled={isLoading}
                 />
@@ -211,14 +225,17 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
                     <FontAwesomeIcon icon={faSpinner} spin /> Nahrávání...
                 </div>
             )}
-            {errors && Object.keys(errors).length > 0 && (
-                <FileUploadError errors={errors} onRetry={openFileDialog} />
+            {errors && (
+                <FileUploadError 
+                    errors={errors} 
+                    onRetry={resetFileInput}
+                />
             )}
             {completeDatasets.length > 1 && !errors && !isLoading && (
                 <FileUploadSelection
                     completeDatasets={completeDatasets}
                     onSelectDataset={handleSelectDataset}
-                    onRetry={openFileDialog}
+                    onRetry={resetFileInput}
                 />
             )}
         </div>

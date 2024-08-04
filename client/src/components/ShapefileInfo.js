@@ -136,6 +136,18 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                     <Form className="mb-3">
                         <Row className="mb-3">
                             <Form.Group as={Col} sm={12} md={6}>
+                                <Form.Label htmlFor="labelAttribute">Název:</Form.Label>
+                                <Form.Select id="labelAttribute" value={labelAttribute} onChange={handleLabelAttributeChange}>
+                                    <option value="">Vyberte atribut</option>
+                                    {shapefileData.attributes.map(attr => (
+                                        <option key={attr} value={attr}>{attr}</option>
+                                    ))}
+                                </Form.Select>
+                                <Form.Text id="labelHelpBlock" muted>
+                                    Položka bude sloužit<br />jako label pro jednotlivé polygony.
+                                </Form.Text>
+                            </Form.Group>
+                            <Form.Group as={Col} sm={12} md={6}>
                                 <Form.Label htmlFor="epsg">EPSG:</Form.Label>
                                 {knownEpsg ? (
                                     <div>
@@ -161,18 +173,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                                 )}
                             </Form.Group>
 
-                            <Form.Group as={Col} sm={12} md={6}>
-                                <Form.Label htmlFor="labelAttribute">Název:</Form.Label>
-                                <Form.Select id="labelAttribute" value={labelAttribute} onChange={handleLabelAttributeChange}>
-                                    <option value="">Vyberte atribut</option>
-                                    {shapefileData.attributes.map(attr => (
-                                        <option key={attr} value={attr}>{attr}</option>
-                                    ))}
-                                </Form.Select>
-                                <Form.Text id="labelHelpBlock" muted>
-                                    Položka bude sloužit<br />jako label pro jednotlivé polygony.
-                                </Form.Text>
-                            </Form.Group>
+
                         </Row>
                     </Form>
                 </Col>

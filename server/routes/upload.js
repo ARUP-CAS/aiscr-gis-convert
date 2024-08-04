@@ -24,8 +24,11 @@ const uploader = multer({
         if(config.SUPPORTED_EXTENSIONS.includes(ext)) {
             cb(null, true);
         } else {
-            cb(new Error('Unsupported file type'), false);
+            cb(new Error('Nepodporovaný typ souboru'), false);
         }
+    },
+    limits: {
+        fileSize: config.MAX_FILE_SIZE
     }
 });
 
@@ -44,7 +47,7 @@ async function deleteFiles(files) {
 // POST route pro upload
 router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) => {
     if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ error: 'No files uploaded.' });
+        return res.status(400).json({ error: 'Nebyly nahrány žádné soubory.' });
     }
 
     const shpFile = req.files.find(file => path.extname(file.originalname).toLowerCase() === '.shp');
@@ -112,8 +115,14 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
         await deleteFiles(req.files);
         res.status(500).send('Error processing files.');
     }
+}, (error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: `Soubor je příliš velký. Maximální povolená velikost je ${config.MAX_FILE_SIZE / (1024 * 1024)} MB.` });
+        }
+    }
+    // Zpracování ostatních chyb
+    res.status(500).json({ error: 'Při nahrávání souboru došlo k chybě.' });
 });
-
-module.exports = router;
 
 module.exports = router;

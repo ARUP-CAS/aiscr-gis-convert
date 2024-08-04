@@ -8,7 +8,7 @@ module.exports = {
     
     // File upload configuration
     UPLOAD_DIR: path.join(__dirname, 'uploads'),
-    MAX_FILE_SIZE: 50 * 1024 * 1024, // 50 MB
+    MAX_FILE_SIZE: 20 * 1024 * 1024, // 20 MB v bytech
     MAX_FILES: 10,
 
     // Supported file types
