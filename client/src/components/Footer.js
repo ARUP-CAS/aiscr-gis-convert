@@ -8,8 +8,22 @@ function Footer() {
       <Container>
         <Row>
           <Col className="text-center">
-            <p className="mb-0">&copy; 2024 Konvertor z shapefile na WKT. Všechna práva vyhrazena.</p>
+            <p className="mb-0">AIS CR 2024</p>
             <p className="mb-0"><small>Verze 1.0</small></p>
+          </Col>
+        </Row>
+        <Row className='mt-3'>
+          <Col md="12" className="text-center">
+            <div className="mb-2">
+              <a href="https://www.aiscr.cz/" target='blank'>
+                <img
+                  src="./images/AISCR_CZ_H_CMYK_Pozitiv.png"
+                  alt="Shapefile to WKT conversion"
+                  className=""
+                  style={{ width: '220px', height: 'auto' }}
+                />
+              </a>
+            </div>
           </Col>
         </Row>
       </Container>
