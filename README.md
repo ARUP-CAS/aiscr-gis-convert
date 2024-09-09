@@ -1,6 +1,6 @@
-# Konvertor z shapefile na WKT
+# AIS CR konvertor
 
-Tento projekt poskytuje webový nástroj pro převod shapefile souborů do WKT (Well-Known Text) formátu.
+Tento projekt poskytuje webový nástroj pro převod souborů SHP (shapefile) do WKT (Well-Known Text) formátu.
 
 ## Adresa předprodukční verze
 
@@ -8,7 +8,7 @@ https://shptowkt.geogrep.cz/
 
 ## Funkce
 
-* Nahrávání a zpracování shapefile souborů (.shp, .dbf, .prj)
+* Nahrávání a zpracování shapefile souborů (.shp, .dbf, .prj, .cpg)
 * Převod geometrie z shapefile do WKT formátu
 * Podpora pro souřadnicové systémy S-JTSK (EPSG:5514) a WGS 84 (EPSG:4326)
 * Zobrazení atributových dat spojených s geometrií
