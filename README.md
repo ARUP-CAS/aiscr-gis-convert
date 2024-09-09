@@ -1,4 +1,4 @@
-# AMČR konvertor
+# AMČR GIS konvertor
 
 Tento projekt poskytuje webový nástroj pro převod souborů SHP (shapefile) do WKT (Well-Known Text) formátu, zejména pro účely využítí v systému [Archeologická mapa České republiky (AMČR)](https://amcr-info.aiscr.cz/).
 
