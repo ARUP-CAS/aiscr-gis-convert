@@ -1,4 +1,4 @@
-# AIS CR konvertor
+# AMČR konvertor
 
 Tento projekt poskytuje webový nástroj pro převod souborů SHP (shapefile) do WKT (Well-Known Text) formátu.
 
