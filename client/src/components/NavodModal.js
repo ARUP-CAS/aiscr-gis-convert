@@ -25,7 +25,7 @@ export function NavodModal() {
         </Modal.Header>
         <Modal.Body>
           <p>
-            Nástroj pro převod geoprostorových dat (SHP, GPX, …) do formátu WKT ve struktuře vhodné pro import do systému AMČR.
+            Nástroj k převodu vybraných formátů geoprostorových dat do formátu WKT ve struktuře vhodné pro import do systému AMČR.
           </p>
           
           <Accordion defaultActiveKey="0">
