@@ -10,4 +10,6 @@ doi: (doplnit pro první release)
 date-released: 2024-09-09
 url: "https://github.com/ARUP-CAS/aiscr-gis-convert"
 repository-code: "https://github.com/ARUP-CAS/aiscr-gis-convert"
+license: MIT
 type: software
+abstract: "A tool for converting selected geospatial data formats to WKT format in a structure suitable for import into the AMCR system."
