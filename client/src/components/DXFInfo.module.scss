@@ -1,0 +1,24 @@
+.navLink {
+  &.empty {
+    color: #aaa;
+    &:hover {
+      color: #888;
+    }
+  }
+
+  &.notEmpty {
+    color: #007bff;
+    &:hover {
+      color: #0056b3;
+    }
+  }
+
+  &.active {
+    background-color: #007bff !important;
+    color: white !important;
+    border-color: #007bff !important;
+    &:hover {
+      color: #f8f9fa !important;
+    }
+  }
+}

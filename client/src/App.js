@@ -8,9 +8,9 @@ import MainContent from './components/MainContent';
 import AlertModal from './components/AlertModal';
 import Footer from './components/Footer';
 import useShapefileProcessing from './hooks/useShapefileProcessing';
+import useDXFProcessing from './hooks/useDXFProcessing';
 import useAlertModal from './hooks/useAlertModal';
 
-// Hlavní komponenta aplikace
 function App() {
     // Použití custom hooku pro zpracování shapefile dat
     const {
@@ -23,6 +23,19 @@ function App() {
         handleRefresh,
         handleReupload
     } = useShapefileProcessing();
+
+    // Použití custom hooku pro zpracování DXF dat
+    const {
+        dxfData,
+        setDXFData,
+        dxfExportContent,
+        dxfLabelAttribute,
+        setDXFLabelAttribute,
+        handleDXFExportSettingsChange,
+        handleDXFFeatureSelection,
+        handleDXFRefresh,
+        handleDXFReupload
+    } = useDXFProcessing();
 
     // Použití custom hooku pro zobrazení alert modalu
     const { alertModal, showAlert, hideAlert, confirmAction } = useAlertModal();
@@ -44,11 +57,20 @@ function App() {
                     exportContent={exportContent}
                     onExportSettingsChange={handleExportSettingsChange}
                     onFeatureSelection={handleFeatureSelection}
-                    // Zobrazení potvrzovacího dialogu při pokusu o smazání dat
                     onRefresh={() => showAlert('Potvrzení', 'Opravdu chcete vše smazat? Aktuální data budou nevratně ztracena.', 'refresh')}
-                    // Zobrazení potvrzovacího dialogu při pokusu o nahrání nového souboru
                     onReupload={() => showAlert('Potvrzení', 'Opravdu chcete vymazat aktuální data a nahrát nový soubor?', 'reupload')}
                     fileUploadRef={fileUploadRef}
+
+                    // Podpora pro DXF
+                    dxfData={dxfData}
+                    setDXFData={setDXFData}
+                    dxfExportContent={dxfExportContent}
+                    dxfLabelAttribute={dxfLabelAttribute}
+                    onDXFLabelAttributeChange={setDXFLabelAttribute}
+                    onDXFExportSettingsChange={handleDXFExportSettingsChange}
+                    onDXFFeatureSelection={handleDXFFeatureSelection}
+                    onDXFRefresh={() => showAlert('Potvrzení', 'Opravdu chcete smazat DXF data?', 'dxfRefresh')}
+                    onDXFReupload={() => showAlert('Potvrzení', 'Opravdu chcete vymazat DXF data a nahrát nový DXF soubor?', 'dxfReupload')}
                 />
             </Container>
             {/* Patička aplikace */}
@@ -59,7 +81,7 @@ function App() {
                 onHide={hideAlert}
                 title={alertModal.title}
                 message={alertModal.message}
-                onConfirm={() => confirmAction(handleRefresh, handleReupload)}
+                onConfirm={() => confirmAction(handleRefresh, handleReupload, handleDXFRefresh, handleDXFReupload)}
             />
         </div>
     );

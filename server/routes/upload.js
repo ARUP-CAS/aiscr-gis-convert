@@ -69,15 +69,19 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
         warning = (warning ? warning + ' ' : '') + 'Byly nahrány nadbytečné soubory, které nebudou použity.';
     }
 
+ 
+
     try {
-        const results = [];
         const shpPath = shpFile.path;
         const fileName = decodeText(shpFile.originalname);
-
+    
         const { features, epsg, attributes } = await convertShapefileToGeoJSON(shpPath);
         const wkt = convertGeoJSONToWKT(features);
-
-        results.push({
+    
+        // Mazání souborů po zpracování
+        await deleteFiles(req.files);
+    
+        res.json({
             fileName,
             epsg,
             attributes,
@@ -85,23 +89,8 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
                 label: feature.properties.label || `Feature ${index + 1}`,
                 wkt: wkt[index],
                 properties: feature.properties
-            }))
-        });
-
-        // Mazání souborů po zpracování
-        await deleteFiles(req.files);
-
-        res.json({
-            fileName: fileName,
-            epsg,
-            attributes,
-            features,
-            warning,
-            features: features.map((feature, index) => ({
-                label: feature.properties.label || `Feature ${index + 1}`,
-                wkt: wkt[index],
-                properties: feature.properties
             })),
+            warning,
             uploadedFiles: {
                 shp: !!shpFile,
                 dbf: !!dbfFile,

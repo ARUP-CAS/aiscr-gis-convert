@@ -6,6 +6,7 @@ const path = require('path');
 const cron = require('node-cron');
 const fs = require('fs').promises;
 const uploadRouter = require('./routes/upload');
+const dxfUploadRouter = require('./routes/dxfUpload'); // Nový import
 const { PORT, CLIENT_PATH, UPLOAD_DIR } = require('./config');
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.static(path.join(CLIENT_PATH)));
 
 // Routes
 app.use('/upload', uploadRouter);
+app.use('/upload-dxf', dxfUploadRouter); // Nová route pro DXF soubory
 
 // Cron job pro mazání starých souborů
 cron.schedule('0 0 * * *', async () => {
