@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Table, Container, Button, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faInfoCircle, faUndo, faCheck } from '@fortawesome/free-solid-svg-icons';
+import styles from './ShapefileInfo.module.scss'; // Import SCSS modulu
 
 // Mapování EPSG kódů na jejich názvy
 const epsgMapping = {
@@ -14,15 +15,12 @@ function getEpsgName(code) {
     return epsgMapping[code] || 'Neznámý systém';
 }
 
-// Komponenta pro zobrazení informací o shapefilu
 function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) {
-    // State pro EPSG kód, atribut pro label a features
     const [epsg, setEpsg] = useState('');
     const [labelAttribute, setLabelAttribute] = useState('');
     const [features, setFeatures] = useState(shapefileData.features || []);
     const [knownEpsg, setKnownEpsg] = useState(null);
 
-    // Effect pro inicializaci EPSG a label atributu
     useEffect(() => {
         let newEpsg = '';
         if (shapefileData.epsg) {
@@ -37,7 +35,6 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         }
         setEpsg(newEpsg);
 
-        // Nastavení výchozího atributu pro label
         if (shapefileData.attributes.includes('label')) {
             setLabelAttribute('label');
         } else {
@@ -48,17 +45,14 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         }
     }, [shapefileData]);
 
-    // Effect pro aktualizaci nastavení exportu
     useEffect(() => {
         onSettingsChange({ epsg, labelAttribute });
     }, [epsg, labelAttribute, onSettingsChange]);
 
-    // Effect pro aktualizaci vybraných features
     useEffect(() => {
         onFeatureSelection(features.filter(feature => feature.export !== false));
     }, [features, onFeatureSelection]);
 
-    // Handlery pro změnu EPSG a label atributu
     const handleEpsgChange = (e) => {
         setEpsg(e.target.value);
     };
@@ -67,7 +61,6 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         setLabelAttribute(e.target.value);
     };
 
-    // Handler pro změnu exportu feature
     const handleExportChange = (index, checked) => {
         setFeatures(prevFeatures =>
             prevFeatures.map((feature, i) =>
@@ -76,7 +69,6 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         );
     };
 
-    // Handler pro úpravu labelu feature
     const handleLabelEdit = (index, newLabel) => {
         setFeatures(prevFeatures =>
             prevFeatures.map((feature, i) =>
@@ -85,7 +77,6 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         );
     };
 
-    // Funkce pro reset labelů na výchozí hodnoty
     const resetLabels = () => {
         setFeatures(prevFeatures =>
             prevFeatures.map(feature => ({
@@ -95,11 +86,51 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
         );
     };
 
+    // Funkce pro vykreslení tabulky
+    const renderTable = (features) => (
+        <div className={styles.tableContainer}>
+            <Table striped bordered hover responsive>
+                <thead>
+                    <tr>
+                        <th>
+                            Label
+                            <Button variant="link" onClick={resetLabels} title="Resetovat na výchozí hodnoty">
+                                <FontAwesomeIcon icon={faUndo} />
+                            </Button>
+                        </th>
+                        <th>EPSG</th>
+                        <th>Export</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {features.map((feature, index) => (
+                        <tr key={index}>
+                            <td>
+                                <Form.Control
+                                    type="text"
+                                    value={feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[labelAttribute] || `Feature ${index + 1}`)}
+                                    onChange={(e) => handleLabelEdit(index, e.target.value)}
+                                />
+                            </td>
+                            <td>{epsg}</td>
+                            <td>
+                                <Form.Check
+                                    type="checkbox"
+                                    checked={feature.export !== false}
+                                    onChange={(e) => handleExportChange(index, e.target.checked)}
+                                />
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+        </div>
+    );
+
     return (
         <Container>
             <p className='lead'>Načten soubor <strong>{shapefileData.fileName}</strong></p>
 
-            {/* Tabulka s informacemi o nahraných souborech */}
             <Row className="justify-content-md-center mb-3">
                 <Col lg={8} md={10} sm={12}>
                     <Table striped bordered hover size="sm">
@@ -130,7 +161,6 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                 </Col>
             </Row>
 
-            {/* Formulář pro nastavení EPSG a label atributu */}
             <Row className="justify-content-md-center">
                 <Col lg={8} md={10} sm={12}>
                     <Form className="mb-3">
@@ -172,51 +202,14 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                                     </>
                                 )}
                             </Form.Group>
-
-
                         </Row>
                     </Form>
                 </Col>
             </Row>
 
-            {/* Tabulka s features */}
             <Row className="justify-content-md-center py-3">
                 <Col lg={9} md={12}>
-                    <Table striped bordered hover responsive>
-                        <thead>
-                            <tr>
-                                <th>
-                                    Label
-                                    <Button variant="link" onClick={resetLabels} title="Resetovat na výchozí hodnoty">
-                                        <FontAwesomeIcon icon={faUndo} />
-                                    </Button>
-                                </th>
-                                <th>EPSG</th>
-                                <th>Export</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {features.map((feature, index) => (
-                                <tr key={index}>
-                                    <td>
-                                        <Form.Control
-                                            type="text"
-                                            value={feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[labelAttribute] || `Feature ${index + 1}`)}
-                                            onChange={(e) => handleLabelEdit(index, e.target.value)}
-                                        />
-                                    </td>
-                                    <td>{epsg}</td>
-                                    <td>
-                                        <Form.Check
-                                            type="checkbox"
-                                            checked={feature.export !== false}
-                                            onChange={(e) => handleExportChange(index, e.target.checked)}
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
+                    {renderTable(features)}
                 </Col>
             </Row>
         </Container>

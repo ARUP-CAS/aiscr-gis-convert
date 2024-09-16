@@ -38,40 +38,44 @@ function DXFInfo({ dxfData, dxfLabelAttribute, onLabelAttributeChange, checkedFe
     };
 
     const renderTable = (features) => (
-        <Table striped bordered hover>
-            <thead>
-                <tr>
-                    <th>Label</th>
-                    <th>Typ geometrie</th> {/* Nový sloupec */}
-                    <th>EPSG</th>
-                    <th>Export</th>
-                </tr>
-            </thead>
-            <tbody>
-                {features.map((feature, index) => (
-                    <tr key={index}>
-                        <td>
-                            <Form.Control
-                                type="text"
-                                value={getFeatureLabel(feature)}
-                                readOnly
-                            />
-                        </td>
-                        <td>{feature.geometryType}</td> {/* Typ geometrie */}
-                        <td>{epsg}</td>
-                        <td>
-                            <Form.Check
-                                type="checkbox"
-                                checked={checkedFeatures.has(feature.systemoveID)}
-                                onChange={() => onCheckedFeatureToggle(feature.systemoveID)}
-                            />
-                        </td>
+        <div className={styles.tableContainer}>
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Typ geometrie</th>
+                        <th>EPSG</th>
+                        <th>Export</th>
                     </tr>
-                ))}
-            </tbody>
-        </Table>
+                </thead>
+                <tbody>
+                    {features.map((feature, index) => (
+                        <tr key={index}>
+                            <td>
+                                <Form.Control
+                                    type="text"
+                                    value={getFeatureLabel(feature)}
+                                    readOnly
+                                />
+                            </td>
+                            <td>{feature.geometryType}</td>
+                            <td>{epsg}</td>
+                            <td>
+                                <Form.Check
+                                    type="checkbox"
+                                    checked={checkedFeatures.has(feature.systemoveID)}
+                                    onChange={() => onCheckedFeatureToggle(feature.systemoveID)}
+                                />
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+        </div>
     );
-
+    
+    
+    
     const renderNavItem = (key, label, features) => {
         const count = featureCounts[key];
         const checkedCount = features.filter(feature => checkedFeatures.has(feature.systemoveID)).length; // Počet zaškrtnutých
@@ -107,23 +111,31 @@ function DXFInfo({ dxfData, dxfLabelAttribute, onLabelAttributeChange, checkedFe
             <Row className="mt-3">
                 <Col md={6}>
                     <Form.Group>
-                        <Form.Label>Vyberte atribut pro label:</Form.Label>
+                        <Form.Label>Název:</Form.Label>
                         <Form.Select value={dxfLabelAttribute}
                             onChange={(e) => onLabelAttributeChange(e.target.value)}>
                             {labelOptions.map(option => (
                                 <option key={option} value={option}>{option}</option>
                             ))}
                         </Form.Select>
+                        <Form.Text id="labelHelpBlock" muted>
+                            Položka bude sloužit<br />jako label pro jednotlivé polygony.
+                        </Form.Text>
                     </Form.Group>
                 </Col>
                 <Col md={6}>
                     <Form.Group>
-                        <Form.Label>Vyberte EPSG:</Form.Label>
+                        <Form.Label>EPSG:</Form.Label>
                         <Form.Select value={epsg} onChange={(e) => setEpsg(e.target.value)}>
                             {Object.entries(epsgMapping).map(([code, name]) => (
                                 <option key={code} value={code}>{code} - {name}</option>
                             ))}
                         </Form.Select>
+                        <Form.Text id="labelHelpBlock" muted>
+                            DXF soubor neobsahuje přímou informaci o EPSG. <br />
+                            Prosím, vyberte správný EPSG kód z nabídky.
+                        </Form.Text>
+
                     </Form.Group>
                 </Col>
             </Row>
