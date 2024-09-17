@@ -40,18 +40,39 @@ function useShapefileProcessing() {
     }, []);
 
     // Funkce pro generování obsahu exportu
+    // Funkce pro generování obsahu exportu
     const generateExportContent = useCallback(() => {
         if (exportSettings.epsg && exportSettings.labelAttribute && selectedFeatures.length > 0) {
+
             const header = '"label","epsg","geometry"';
-            const rows = selectedFeatures.map(feature =>
-                `"${feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[exportSettings.labelAttribute] || '')}","${exportSettings.epsg}","${feature.wkt}"`
-            );
+
+            // Funkce pro získání hodnoty atributu label a nahrazení prázdných hodnot
+            const getLabel = (feature) => {
+                // Kontrola, zda je editedLabel nebo hodnota z labelAttribute prázdná, pokud ano, nahradíme hodnotou 'Neznámý label'
+                return feature.editedLabel !== undefined
+                    ? feature.editedLabel
+                    : (feature.properties[exportSettings.labelAttribute] || 'Neznámý label');
+            };
+
+            // Generování řádků exportu
+            const rows = selectedFeatures.map(feature => {
+                const label = getLabel(feature);
+                const epsg = exportSettings.epsg;
+                const geometry = feature.wkt;
+
+                // Sestavení řádku CSV
+                return `"${label}","${epsg}","${geometry}"`;
+            });
+
+            // Spojení hlavičky a řádků do finálního obsahu
             const content = [header, ...rows].join('\n');
             setExportContent(content);
+
         } else {
-            setExportContent('');
+            setExportContent('');  // Při neplatných datech export nevytvoříme
         }
     }, [selectedFeatures, exportSettings]);
+
 
     // Effect pro automatické generování obsahu exportu při změně relevantních dat
     useEffect(() => {

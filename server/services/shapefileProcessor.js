@@ -53,7 +53,36 @@ async function convertShapefileToGeoJSON(shpPath) {
         const attributes = fields.map(field => field.name);
         console.log(`Attributes: ${attributes.join(', ')}`);
 
+        // Přidání systémového ID do attributes a úprava hodnot v properties
+        features.forEach((feature, index) => {
+            const systemoveID = `Prvek_${index + 1}`;
+            feature.properties['vygenerovaneID'] = systemoveID;  // Přidání systemoveID do properties
+
+            // Projdeme všechny atributy a nahradíme prázdné hodnoty systémovým ID a převedeme na string
+            attributes.forEach(attr => {
+                let value = feature.properties[attr];
+
+                // Podmínka pro nahrazení pouze prázdných nebo neplatných hodnot
+                if (value === null || value === undefined || value === '' || Number.isNaN(value)) {
+                    value = systemoveID;  // Nahrazení prázdných hodnot systémovým ID
+                }
+
+                // Převedení všech hodnot na string
+                feature.properties[attr] = String(value);
+            });
+
+        });
+
+        attributes.unshift('vygenerovaneID');  // Přidání vygenerovaneID na začátek seznamu atributů
+
         return { features, epsg, attributes };
+
+
+
+
+
+
+
     } catch (error) {
         console.error(`Error converting shapefile to GeoJSON for file ${shpPath}:`, error);
         throw error;

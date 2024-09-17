@@ -108,7 +108,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                             <td>
                                 <Form.Control
                                     type="text"
-                                    value={feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[labelAttribute] || `Feature ${index + 1}`)}
+                                    value={feature.editedLabel !== undefined ? feature.editedLabel : (feature.properties[labelAttribute] || feature.properties["vygenerovaneID"])}
                                     onChange={(e) => handleLabelEdit(index, e.target.value)}
                                 />
                             </td>

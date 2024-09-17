@@ -80,7 +80,7 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
     
         // Mazání souborů po zpracování
         await deleteFiles(req.files);
-    
+
         res.json({
             fileName,
             epsg,
