@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { API_URL } from '../config';
 
 const DXFUpload = ({ onDXFDataLoaded }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +22,7 @@ const DXFUpload = ({ onDXFDataLoaded }) => {
         formData.append('dxfFile', selectedFile);
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/upload-dxf`, {
+            const response = await fetch(`${ API_URL}/upload-dxf`, {
                 method: 'POST',
                 body: formData,
             });

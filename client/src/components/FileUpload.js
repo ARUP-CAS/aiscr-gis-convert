@@ -6,6 +6,7 @@ import FileUploadError from './FileUploadError';
 import FileUploadSelection from './FileUploadSelection';
 import { MAX_FILE_SIZE, SUPPORTED_EXTENSIONS } from '../config';
 import { validateFileSize, validateFileType, groupFilesByDataset, checkDatasetCompleteness } from '../utils/fileUtils';
+import { API_URL } from '../config';
 
 // Komponenta pro nahrávání shapefile souborů
 // Umožňuje výběr souborů, kontrolu jejich úplnosti a nahrání na server
@@ -74,7 +75,7 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
 
             try {
                 // Odeslání požadavku na server
-                const response = await fetch(`${process.env.REACT_APP_API_URL}/upload`, {
+                const response = await fetch(`${API_URL}/upload`, {
                     method: 'POST',
                     body: formData,
                 });
