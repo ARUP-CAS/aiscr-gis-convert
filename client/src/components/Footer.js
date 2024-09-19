@@ -8,8 +8,7 @@ function Footer() {
       <Container>
         <Row>
           <Col className="text-center">
-            <p className="mb-0">AIS CR 2024</p>
-            <p className="mb-0"><small>Verze 1.0</small></p>
+            <p className="mb-0"><small>AIS CR 2024 (v1.0.0-rc1)</small></p>
           </Col>
         </Row>
         <Row className='mt-3'>
