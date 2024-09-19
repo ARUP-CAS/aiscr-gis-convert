@@ -1,4 +1,5 @@
 # AMČR GIS konvertor
+[![DOI](https://zenodo.org/badge/832128788.svg)](https://zenodo.org/doi/10.5281/zenodo.13791113)
 
 Tento projekt poskytuje webový nástroj pro převod vybraných formátů geoprostorových dat do formátu WKT (Well-Known Text), a to zejména pro účely využítí v systému [Archeologická mapa České republiky (AMČR)](https://amcr-info.aiscr.cz/).
 
