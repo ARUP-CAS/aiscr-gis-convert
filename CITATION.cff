@@ -7,7 +7,7 @@ authors:
 title: "AMČR GIS konvertor"
 version: "v1.0.0-rc1"
 doi: (doplnit pro první release)
-date-released: 2024-09-09
+date-released: 2024-09-19
 url: "https://github.com/ARUP-CAS/aiscr-gis-convert"
 repository-code: "https://github.com/ARUP-CAS/aiscr-gis-convert"
 license: MIT
