@@ -12,15 +12,15 @@ function Hero() {
                         <a href="https://www.aiscr.cz/" target='blank'>
                             <img
                                 src="./images/AISCR_CZ_H_CMYK_Pozitiv.png"
-                                alt="Shapefile to WKT conversion"
+                                alt="AMČR GIS konvertor"
                                 className=""
                                 style={{ width: '220px', height: 'auto' }}
                             />
                         </a>
                     </div>
-                    <h1 className='display-3 mb-3'>AIS CR GIS Convertor</h1>
+                    <h1 className='display-3 mb-3'>AMČR GIS konvertor</h1>
                     <p className='lead mb-4'>
-                        Nástroj k převodu vybraných formátů geoprostorových (SHP, GPX, ...) dat do formátu WKT ve struktuře vhodné pro import do <a src="https://amcr.aiscr.cz/" target='blank'>systému AMČR</a>
+                        Nástroj k převodu vybraných formátů geoprostorových dat do formátu WKT ve struktuře vhodné pro import do <a src="https://amcr.aiscr.cz/" target='blank'>systému AMČR</a>.
                     </p>
                 </Col>
             </Row>

@@ -1,15 +1,15 @@
-# Konvertor z shapefile na WKT
+# AMČR GIS konvertor
 
-Tento projekt poskytuje webový nástroj pro převod shapefile souborů do WKT (Well-Known Text) formátu.
+Tento projekt poskytuje webový nástroj pro převod vybraných formátů geoprostorových dat do formátu WKT (Well-Known Text), a to zejména pro účely využítí v systému [Archeologická mapa České republiky (AMČR)](https://amcr-info.aiscr.cz/).
 
-## Adresa předprodukční verze
+## Adresa produkční verze
 
-https://shptowkt.geogrep.cz/
+https://amcr-convert.aiscr.cz/
 
 ## Funkce
 
-* Nahrávání a zpracování shapefile souborů (.shp, .dbf, .prj)
-* Převod geometrie z shapefile do WKT formátu
+* Nahrávání a zpracování shapefile souborů (.shp, .dbf, .prj, .cpg) a AutoCAD DXF (Drawing Exchange Format)
+* Převod geometrie z shapefile a DXF do WKT formátu
 * Podpora pro souřadnicové systémy S-JTSK (EPSG:5514) a WGS 84 (EPSG:4326)
 * Zobrazení atributových dat spojených s geometrií
 * Uživatelsky přívětivé rozhraní postavené na React.js
