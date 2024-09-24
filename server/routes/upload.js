@@ -46,7 +46,7 @@ async function deleteFiles(files) {
 
 // POST route pro upload
 router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) => {
-    if (!req.files || req.files.length === 0) {
+    if (!Array.isArray(req.files) || req.files.length === 0) {
         return res.status(400).json({ error: 'Nebyly nahrány žádné soubory.' });
     }
 
