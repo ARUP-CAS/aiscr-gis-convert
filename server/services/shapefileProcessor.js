@@ -108,7 +108,7 @@ async function convertShapefileToGeoJSON(shpPath) {
         return { features: reprojectedFeatures, attributes, originalEPSG, currentEPSG, reprojected };
 
     } catch (error) {
-        console.error(`Došlo k chybě při zpracování ${shpPath}:`, error);
+        console.error('Došlo k chybě při zpracování %s:', shpPath, error);
         throw error;
     }
 }
