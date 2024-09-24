@@ -21,7 +21,7 @@ const uploader = multer({
     }),
     fileFilter: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
-        if(config.SUPPORTED_EXTENSIONS.includes(ext)) {
+        if (config.SUPPORTED_EXTENSIONS.includes(ext)) {
             cb(null, true);
         } else {
             cb(new Error('Nepodporovaný typ souboru'), false);
@@ -37,7 +37,7 @@ async function deleteFiles(files) {
     for (const file of files) {
         try {
             await fs.unlink(file.path);
-            console.log(`Deleted file: ${file.path}`);
+            // console.log(`Deleted file: ${file.path}`);
         } catch (error) {
             console.error(`Error deleting file ${file.path}:`, error);
         }
@@ -62,28 +62,33 @@ router.post('/', uploader.array('shpFiles', config.MAX_FILES), async (req, res) 
 
     let warning = null;
     if (!prjFile || !cpgFile) {
-        warning = 'Některé volitelné soubory chybí. Kodování nebo souřadnicový systém mohou být nastaveny na výchozí hodnoty.';
+        warning = 'Některé volitelné soubory chybí. Kodování nebo souřadnicový systém mohou vykazovat chyby.';
     }
 
     if (req.files.length > 4) {
         warning = (warning ? warning + ' ' : '') + 'Byly nahrány nadbytečné soubory, které nebudou použity.';
     }
 
- 
+
 
     try {
         const shpPath = shpFile.path;
         const fileName = decodeText(shpFile.originalname);
-    
-        const { features, epsg, attributes } = await convertShapefileToGeoJSON(shpPath);
+
+        const { features,  attributes, originalEPSG, currentEPSG, reprojected  } = await convertShapefileToGeoJSON(shpPath);
+
         const wkt = convertGeoJSONToWKT(features);
-    
+
         // Mazání souborů po zpracování
         await deleteFiles(req.files);
 
         res.json({
             fileName,
-            epsg,
+            epsg: {
+                "currentEPSG": currentEPSG, // Pokud došlo k reprojekci, jinak null
+                "originalEPSG": originalEPSG,       // Originální EPSG
+                "reprojected": reprojected      // Informace, zda došlo k reprojekci
+            },
             attributes,
             features: features.map((feature, index) => ({
                 label: feature.properties.label || `Feature ${index + 1}`,

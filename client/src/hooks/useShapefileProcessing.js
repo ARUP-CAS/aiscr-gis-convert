@@ -40,7 +40,6 @@ function useShapefileProcessing() {
     }, []);
 
     // Funkce pro generování obsahu exportu
-    // Funkce pro generování obsahu exportu
     const generateExportContent = useCallback(() => {
         if (exportSettings.epsg && exportSettings.labelAttribute && selectedFeatures.length > 0) {
 

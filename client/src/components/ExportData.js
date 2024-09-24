@@ -72,7 +72,7 @@ function ExportData({ exportContent, fileName, onRefresh, onReupload }) {
                     </Row>
                 </>
             ) : (
-                <p>Vyberte EPSG a atribut pro label, a označte prvky pro export.</p>
+                <p>Je nutné mít zadaný atribut pro label, validní EPSG a alespoň jeden označený prvek  pro export.</p>
             )}
         </div>
     );

@@ -51,9 +51,7 @@ router.post('/', uploader.single('dxfFile'), async (req, res) => {
     try {
         const result = await processDXF(req.file.path);
         const fileName = decodeText(req.file.originalname);
-
-
-
+        
         const response = {
             fileName,
             fileSize: req.file.size,
@@ -61,11 +59,6 @@ router.post('/', uploader.single('dxfFile'), async (req, res) => {
             epsgInfo: result.epsgInfo,
             features: result.features
         };
-
-        console.log( 'Properties:')
-        console.log( result.features );
-
-
 
         // Mazání souboru po zpracování
         await deleteFile(req.file.path);

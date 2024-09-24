@@ -4,12 +4,14 @@ const fs = require('fs').promises;
 const { decodeDBF } = require('./dbfDecoder');
 const { getEPSG } = require('../utils/epsgHelper');
 const config = require('../config');
+const projConfig = require('../utils/projConfig');
+const reprojectionHelper = require('../utils/reprojectionHelper');
+
 
 async function convertShapefileToGeoJSON(shpPath) {
-    console.log(`Starting conversion of shapefile: ${shpPath}`);
+    console.log(`Zpracování SHP: ${shpPath}`);
     try {
         const source = await shapefile.open(shpPath);
-        console.log('Shapefile opened successfully');
 
         const features = [];
 
@@ -19,16 +21,15 @@ async function convertShapefileToGeoJSON(shpPath) {
         try {
             const cpgContent = await fs.readFile(cpgPath, 'utf8');
             encoding = cpgContent.trim();
-            console.log(`Using encoding from CPG file: ${encoding}`);
+            console.log(`\tKódování z CPG souboru: ${encoding}`);
         } catch (error) {
-            console.warn('No .cpg file found, using default encoding:', encoding);
+            console.warn('\tNebyl nalezen soubor.cpg, bude použito výchozí kodování:', encoding);
         }
 
         // Process DBF
         const dbfPath = shpPath.replace('.shp', '.dbf');
-        console.log(`Processing DBF file: ${dbfPath}`);
         const { fields, records } = await decodeDBF(dbfPath, encoding);
-        console.log(`Processed ${records.length} records from DBF`);
+        console.log(`\tpočet záznamů: ${records.length}`);
 
         // Process features
         let result;
@@ -45,13 +46,9 @@ async function convertShapefileToGeoJSON(shpPath) {
             });
             i++;
         }
-        console.log(`Processed ${features.length} features`);
-
-        const epsg = await getEPSG(shpPath);
-        console.log(`EPSG code: ${epsg}`);
 
         const attributes = fields.map(field => field.name);
-        console.log(`Attributes: ${attributes.join(', ')}`);
+        console.log(`\tnázvy atributů: ${attributes.join(', ')}`);
 
         // Přidání systémového ID do attributes a úprava hodnot v properties
         features.forEach((feature, index) => {
@@ -74,23 +71,51 @@ async function convertShapefileToGeoJSON(shpPath) {
         });
 
         attributes.unshift('vygenerovaneID');  // Přidání vygenerovaneID na začátek seznamu atributů
+        
+        // Získání EPSG kódu
+        let epsg = null;
 
-        return { features, epsg, attributes };
+        const epsgData = await getEPSG(shpPath); // epsgData nebo null
 
+        if (epsgData && epsgData.code) {
+            epsg = epsgData.code;
+            console.log(`\tEPSG: ${epsg}`);
+        }
 
+        // Reprojekce souřadnic, pokud není EPSG 5514
+        let reprojected = false;
+        let originalEPSG = epsg;
+        let currentEPSG = epsg;
 
+        // Pokud je EPSG 5514 nebo 4326, není potřeba reprojekce, return
+        if (epsg === 5514 || epsg === 4326) {
+            console.log(`\tReprojekce není potřeba. Data zůstávají v původním EPSG (${epsg}.`);
+            return { features: features, attributes, originalEPSG, currentEPSG, reprojected };
+        }
 
+        // Kontrola, zda je EPSG v seznamu možných variant Křováka
+        const isKnownKrovakEPSG = projConfig.some(def => def.code === `EPSG:${epsg}`);
+        if (!isKnownKrovakEPSG) {
+            console.warn(`\tReprojekce neproběhne, EPSG ${epsg} není v seznamu známých variant Křováka.`);
+            return { features: features, attributes, originalEPSG, currentEPSG, reprojected };
+        }
 
-
+        // Reprojekce
+        console.log(`\tReprojekce do EPSG 5514`);
+        currentEPSG = 5514;
+        const reprojectedFeatures = await reprojectionHelper.reprojectFeaturesTo5514(features, epsg);
+        reprojected = true;
+        return { features: reprojectedFeatures, attributes, originalEPSG, currentEPSG, reprojected };
 
     } catch (error) {
-        console.error(`Error converting shapefile to GeoJSON for file ${shpPath}:`, error);
+        console.error(`Došlo k chybě při zpracování ${shpPath}:`, error);
         throw error;
     }
 }
 
+
 function convertGeoJSONToWKT(geojson) {
-    console.log(`Converting ${geojson.length} features to WKT`);
+    console.log(`\tPřevod záznamů (${geojson.length}) do WKT`);
     try {
         return geojson.map(feature => TerraformerWKT.convert(feature.geometry));
     } catch (error) {

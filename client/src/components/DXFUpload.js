@@ -22,7 +22,7 @@ const DXFUpload = ({ onDXFDataLoaded }) => {
         formData.append('dxfFile', selectedFile);
 
         try {
-            const response = await fetch(`${ API_URL}/upload-dxf`, {
+            const response = await fetch(`${API_URL}/upload-dxf`, {
                 method: 'POST',
                 body: formData,
             });

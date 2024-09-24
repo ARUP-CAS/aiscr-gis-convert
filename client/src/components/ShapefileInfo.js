@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Table, Container, Button, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faInfoCircle, faUndo, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faTriangleExclamation, faTag, faGlobe, faBan, faRandom, faArrowRight, faInfoCircle, faUndo, faCheck } from '@fortawesome/free-solid-svg-icons';
 import styles from './ShapefileInfo.module.scss'; // Import SCSS modulu
+import { getEpsgName, getEpsgFullName } from '../utils/epsgUtils';
 
 // Mapování EPSG kódů na jejich názvy
 const epsgMapping = {
@@ -11,28 +12,59 @@ const epsgMapping = {
 };
 
 // Funkce pro získání názvu EPSG systému podle kódu
-function getEpsgName(code) {
-    return epsgMapping[code] || 'Neznámý systém';
-}
+// function getEpsgName(code) {
+//     return epsgMapping[code] || 'Neznámý systém';
+// }
+
+
 
 function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) {
     const [epsg, setEpsg] = useState('');
+    const [supportedEpsg, setSupportedEpsg] = useState(null);
+
+    const [reprojected, setReprojected] = useState(null);
+    const [originalEPSG, setOriginalEPSG] = useState(null);
+    const [currentEPSG, setCurrentEPSG] = useState(null);
+
     const [labelAttribute, setLabelAttribute] = useState('');
     const [features, setFeatures] = useState(shapefileData.features || []);
-    const [knownEpsg, setKnownEpsg] = useState(null);
 
     useEffect(() => {
         let newEpsg = '';
-        if (shapefileData.epsg) {
-            newEpsg = shapefileData.epsg;
-            setKnownEpsg(shapefileData.epsg);
-        } else if (shapefileData.attributes.includes('EPSG')) {
-            newEpsg = shapefileData.features[0].properties.EPSG;
-            setKnownEpsg(newEpsg);
+        let reprojected = shapefileData.epsg.reprojected;
+        let originalEPSG = shapefileData.epsg.originalEPSG;
+        let currentEPSG = shapefileData.epsg.currentEPSG;
+
+        console.log("reprojected: ", reprojected, typeof reprojected);
+        console.log("originalEPSG: ", originalEPSG, typeof originalEPSG);
+        console.log("currentEPSG: ", currentEPSG, typeof currentEPSG);
+
+        if (!reprojected) {
+            setReprojected(false);
+
+            if (originalEPSG === 5514 || originalEPSG === 4326) {
+                console.log(`Reprojekce není potřeba. Data zůstávají v původním EPSG (${originalEPSG}).`);
+                setOriginalEPSG(originalEPSG);
+                newEpsg = originalEPSG;
+                setSupportedEpsg(originalEPSG);
+            } else {
+                console.warn(`Reprojekce neproběhla`);
+                console.warn(`/t- EPSG ${originalEPSG} není podporován. (pouze 5514 a 4326).`);
+                console.warn(`/t- EPSG ${originalEPSG} (${getEpsgName(originalEPSG)}) není v seznamu známých variant Křováka.`);
+                setOriginalEPSG(originalEPSG);
+                console.log(`Reprojekce proběhla. Data jsou v EPSG ${originalEPSG}.`);
+                // newEpsg = '5514';
+
+                setSupportedEpsg(null);
+            }
         } else {
-            newEpsg = '5514';
-            setKnownEpsg(null);
+            setReprojected(true);
+            console.log(`Reprojekce proběhla. Data byla převedena z EPSG ${originalEPSG} na EPSG ${currentEPSG}.`);
+            setOriginalEPSG(originalEPSG);
+            setCurrentEPSG(currentEPSG);
+            newEpsg = currentEPSG;
         }
+
         setEpsg(newEpsg);
 
         if (shapefileData.attributes.includes('label')) {
@@ -162,11 +194,13 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
             </Row>
 
             <Row className="justify-content-md-center">
-                <Col lg={8} md={10} sm={12}>
+                <Col lg={9} md={12}>
                     <Form className="mb-3">
                         <Row className="mb-3">
                             <Form.Group as={Col} sm={12} md={6}>
-                                <Form.Label htmlFor="labelAttribute">Název:</Form.Label>
+                                <Form.Label htmlFor="labelAttribute" className='fs-3'>
+                                    <FontAwesomeIcon icon={faTag} className="text-secondary" />&nbsp;
+                                    Název:</Form.Label>
                                 <Form.Select id="labelAttribute" value={labelAttribute} onChange={handleLabelAttributeChange}>
                                     <option value="">Vyberte atribut</option>
                                     {shapefileData.attributes.map(attr => (
@@ -178,40 +212,93 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                                 </Form.Text>
                             </Form.Group>
                             <Form.Group as={Col} sm={12} md={6}>
-                                <Form.Label htmlFor="epsg">EPSG:</Form.Label>
-                                {knownEpsg ? (
+                                <Form.Label htmlFor="epsg" className='fs-3'>
+                                    <FontAwesomeIcon icon={faGlobe} className="text-secondary" />&nbsp;
+                                    EPSG:
+                                </Form.Label>
+                                {!reprojected ? (
                                     <div>
-                                        <p className="">
-                                            <FontAwesomeIcon icon={faCheck} className="text-success" />&nbsp;
-                                            <strong>{knownEpsg} ({getEpsgName(knownEpsg)})</strong>
-                                        </p>
-                                        <p className="d-inline-block small text-muted">Zjištěno z nahraného souboru</p>
+                                        {supportedEpsg ? (
+                                            <div>
+                                                <p className="">
+                                                    <FontAwesomeIcon icon={faCheck} className="text-success" />&nbsp;
+                                                    <strong>{getEpsgFullName(supportedEpsg)}</strong>
+                                                </p>
+                                                <p className="d-inline-block small text-muted">Zjištěno z nahraného SHP souboru.</p>
+
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                {originalEPSG ? (
+                                                    <div>
+                                                        <p className="">
+                                                            <FontAwesomeIcon icon={faTriangleExclamation} className="text-warning" />&nbsp;
+                                                            <strong>{getEpsgFullName(originalEPSG)}</strong>                                                </p>
+                                                        <p className="d-inline-block small text-muted">
+                                                            Zdá se, že nahraný SHP soubor je v souřadnicovém systému,&nbsp;který
+                                                            <br />
+                                                            <strong>není podporován jako import do systému AMČR</strong>.
+                                                            <br /><br />
+                                                            <FontAwesomeIcon icon={faInfoCircle} />&nbsp;
+                                                            Povolené souřadnicové systémy pro nahrání jsou 
+                                                            varianty S-JTSK a {getEpsgFullName(4326)}.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <p className="">
+                                                            <FontAwesomeIcon icon={faTriangleExclamation} className="text-warning" />&nbsp;
+                                                            <strong>Neznámý souřadnicový systém.</strong>                                                </p>
+                                                        <p className="d-inline-block small text-muted">
+                                                            U nahraného SHP souboru nebyl rozpoznán souřadnicový systém.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <Form.Select id="epsg" value={epsg} onChange={handleEpsgChange}>
+                                                        <option value="">Vyberte EPSG</option>
+                                                        {Object.entries(epsgMapping).map(([code, name]) => (
+                                                            <option key={code} value={code}>{code} ({name})</option>
+                                                        ))}
+                                                    </Form.Select>
+                                                </div>
+
+                                            </div>
+
+                                        )}
                                     </div>
                                 ) : (
-                                    <>
-                                        <Form.Select id="epsg" value={epsg} onChange={handleEpsgChange}>
-                                            <option value="">Vyberte EPSG</option>
-                                            {Object.entries(epsgMapping).map(([code, name]) => (
-                                                <option key={code} value={code}>{code} ({name})</option>
-                                            ))}
-                                        </Form.Select>
-                                        <Form.Text id="epsgHelpBlock" muted>
-                                            Povolené EPSG jsou uvedeny výše.
-                                            <br /><FontAwesomeIcon icon={faInfoCircle} /> V SHP nebylo zjištěno EPSG.
-                                        </Form.Text>
-                                    </>
+                                    <div>
+                                        <p className="">
+                                            <FontAwesomeIcon icon={faCheck} className="text-warning" />&nbsp;
+                                            <strong>{getEpsgFullName(currentEPSG)}</strong>
+                                        </p>
+                                        <p className='d-inline-block small'>
+                                            Došlo k automatické transformaci souřadnicového systému:
+                                            <br /><br />
+                                            <strong>
+                                                {getEpsgFullName(originalEPSG)}
+                                                <FontAwesomeIcon icon={faArrowRight} className="mx-2" />
+                                                {getEpsgFullName(currentEPSG)}
+                                            </strong>
+                                        </p>
+                                    </div>
                                 )}
                             </Form.Group>
                         </Row>
                     </Form>
                 </Col>
             </Row>
+            {epsg ? (
 
-            <Row className="justify-content-md-center py-3">
-                <Col lg={9} md={12}>
-                    {renderTable(features)}
-                </Col>
-            </Row>
+                <Row className="justify-content-md-center py-3">
+                    <Col lg={9} md={12}>
+                        {renderTable(features)}
+                    </Col>
+                </Row>
+            ) : (
+                null
+            )}
         </Container>
     );
 }
