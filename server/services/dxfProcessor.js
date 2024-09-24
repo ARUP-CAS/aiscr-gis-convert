@@ -28,7 +28,7 @@ async function processDXF(filePath) {
             fileName: filePath.split('/').pop()
         };
     } catch (error) {
-        console.error(`Error processing DXF file ${filePath}:`, error);
+        console.error('Error processing DXF file %s:', filePath, error);
         throw error;
     }
 }
