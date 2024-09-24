@@ -38,7 +38,8 @@ async function deleteFile(filePath) {
         await fs.unlink(filePath);
         console.log(`Deleted file: ${filePath}`);
     } catch (error) {
-        console.error(`Error deleting file ${filePath}:`, error);
+        const sanitizedFilePath = filePath.replace(/\n|\r/g, "");
+        console.error(`Error deleting file ${sanitizedFilePath}:`, error);
     }
 }
 
