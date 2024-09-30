@@ -53,3 +53,27 @@ https://amcr-convert.aiscr.cz/
   - Zobrazení upozornění na případné chybějící nebo volitelné soubory.
 - **Struktura:**
   - `components/ShapefileInfo.js`: Komponenta zobrazuje informace o nahraném SHP souboru, umožňuje nastavení atributů a EPSG.
+
+## Spuštění na lokálním serveru
+
+### Předpoklady
+- Nainstalovaný Node.js: [Stáhněte a nainstalujte Node.js](https://nodejs.org/)
+- `nodemon` nainstalovaný globálně pro automatický restart serveru při změnách v kódu.
+
+### Postup spuštění
+
+```bash
+# 1. Naklonujte repozitář do svého lokálního počítače
+git clone https://github.com/ARUP-CAS/aiscr-gis-convert.git
+
+# 2. Přejděte do složky projektu
+cd cesta/k/projektu
+
+# 3. Nainstalujte závislosti pomocí npm
+npm install
+
+# 4. Spusťte server pomocí nodemon
+nodemon server.js
+```
+
+Server nyní běží na `http://localhost:3005` (nebo jiném portu, který je definován v konfiguraci).
