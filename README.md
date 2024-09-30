@@ -1,64 +1,64 @@
-# AMČR GIS konvertor
+# AMČR GIS Konvertor
 [![DOI](https://zenodo.org/badge/832128788.svg)](https://zenodo.org/doi/10.5281/zenodo.13791113)
 
-Tento projekt poskytuje webový nástroj pro převod vybraných formátů geoprostorových dat do formátu WKT (Well-Known Text), a to zejména pro účely využítí v systému [Archeologická mapa České republiky (AMČR)](https://amcr-info.aiscr.cz/).
+Tento projekt poskytuje webový nástroj pro převod vybraných formátů geoprostorových dat do formátu WKT (Well-Known Text), zejména pro využití v systému [Archeologická mapa České republiky (AMČR)](https://amcr-info.aiscr.cz/).
 
 ## Adresa produkční verze
 
-https://amcr-convert.aiscr.cz/
+- [AMČR GIS Konvertor](https://amcr-convert.aiscr.cz/)
 
 ## Funkce
 
-* Nahrávání a zpracování shapefile souborů (.shp, .dbf, .prj, .cpg) a AutoCAD DXF (Drawing Exchange Format)
-* Převod geometrie z shapefile do WKT formátu
-* Podpora pro varianty souřadnicové systémy S-JTSK a WGS 84 (EPSG:4326)
+- Nahrávání a zpracování souborů ve formátu Shapefile (.shp, .dbf, .prj, .cpg) a AutoCAD DXF (Drawing Exchange Format)
+- Převod geometrie ze Shapefile do WKT formátu
+- Podpora pro varianty souřadnicových systémů S-JTSK a WGS 84 (EPSG:4326)
+  
+**Varianty S-JTSK:**
 
-* Varianty S-JTSK:
+| EPSG Code | Popis                                   |
+|-----------|----------------------------------------|
+| 2065      | S-JTSK (Ferro) / Křovák                |
+| 5221      | S-JTSK (Ferro) / Křovák (East-North)   |
+| 8352      | S-JTSK [JTSK03] / Křovák               |
+| 8353      | S-JTSK [JTSK03] / Křovák (East-North)  |
+| 5513      | S-JTSK / Křovák                        |
+| 5514      | S-JTSK / Křovák (East-North)           |
+| 102066    | S-JTSK (Ferro) / Křovák (East-North)   |
+| 102065    | S-JTSK / Křovák (Greenwich)            |
+| 102067    | S-JTSK / Křovák (East-North, Greenwich)|
 
-| EPSG Code | Search Text                      |
-|-----------|----------------------------------|
-| 2065      | S-JTSK_Ferro_Krovak              |
-| 5221      | S-JTSK_Ferro_Krovak_East_North   |
-| 8352      | S-JTSK_JTSK03_Krovak             |
-| 8353      | S-JTSK_JTSK03_Krovak_East_North  |
-| 5513      | S-JTSK_Krovak                    |
-| 5514      | S-JTSK_Krovak_East_North         |
-| 102066    | S-JTSK_Ferro_Krovak_East_North   |
-| 102065    | S-JTSK_Krovak                    |
-| 102067    | S-JTSK_Krovak_East_North         |
-
-* Zobrazení atributových dat spojených s geometrií
-* Uživatelsky přívětivé rozhraní postavené na React.js
-* Robustní backend API využívající Express.js
+- Zobrazení atributových dat spojených s geometrií
+- Uživatelsky přívětivé rozhraní postavené na React.js
+- Robustní backend API využívající Express.js
 
 ## Technologie
 
 ### Serverová část
 - **Technologie:** Node.js, Express, Multer
 - **Hlavní funkce:**
-  - Zpracování SHP souborů nahraných uživatelem.
-  - Extrakce geometrií, atributů a reprojekce souřadnic do EPSG:5514.
-  - Detekce EPSG kódu z prj souboru a reprojekce pomocí MapTiler API.
+  - Zpracování SHP souborů nahraných uživatelem
+  - Extrakce geometrie, atributů a reprojekce souřadnic do EPSG:5514
+  - Detekce EPSG kódu z PRJ souboru a reprojekce pomocí MapTiler API
 - **Struktura:**
-  - `routes/upload.js`: Definice endpointu pro nahrání a zpracování SHP souborů.
-  - `services/shapefileProcessor.js`: Hlavní logika pro zpracování a konverzi SHP do GeoJSON.
-  - `utils/reprojectionHelper.js`: Helper pro reprojekci souřadnic pomocí MapTiler API.
-  - **Poznámka:** Momentálně je zakomentovaná logika pro zpracování DXF souborů.
+  - `routes/upload.js`: Definice endpointu pro nahrávání a zpracování SHP souborů
+  - `services/shapefileProcessor.js`: Hlavní logika pro zpracování a konverzi SHP do GeoJSON
+  - `utils/reprojectionHelper.js`: Helper pro reprojekci souřadnic pomocí MapTiler API
+  - **Poznámka:** Momentálně je zakomentovaná logika pro zpracování DXF souborů
 
 ### Klientská část
 - **Technologie:** React, Bootstrap
 - **Hlavní funkce:**
-  - Zobrazení nahraných SHP souborů a jejich atributů.
-  - Výběr EPSG kódu uživatelem, pokud nebyl zjištěn automaticky.
-  - Zobrazení upozornění na případné chybějící nebo volitelné soubory.
+  - Zobrazení nahraných SHP souborů a jejich atributů
+  - Výběr EPSG kódu uživatelem, pokud nebyl automaticky zjištěn
+  - Zobrazení upozornění na případné chybějící nebo volitelné soubory
 - **Struktura:**
-  - `components/ShapefileInfo.js`: Komponenta zobrazuje informace o nahraném SHP souboru, umožňuje nastavení atributů a EPSG.
+  - `components/ShapefileInfo.js`: Komponenta zobrazuje informace o nahraném SHP souboru, umožňuje nastavení atributů a EPSG
 
 ## Spuštění na lokálním serveru
 
 ### Předpoklady
-- Nainstalovaný Node.js: [Stáhněte a nainstalujte Node.js](https://nodejs.org/)
-- `nodemon` nainstalovaný globálně pro automatický restart serveru při změnách v kódu.
+- Node.js: [Stáhněte a nainstalujte Node.js](https://nodejs.org/)
+- Globálně nainstalovaný `nodemon` pro automatický restart serveru při změnách kódu
 
 ### Postup spuštění
 
@@ -74,6 +74,3 @@ npm install
 
 # 4. Spusťte server pomocí nodemon
 nodemon server.js
-```
-
-Server nyní běží na `http://localhost:3005` (nebo jiném portu, který je definován v konfiguraci).
