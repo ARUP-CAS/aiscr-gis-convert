@@ -12,7 +12,9 @@ https://amcr-convert.aiscr.cz/
 * Nahrávání a zpracování shapefile souborů (.shp, .dbf, .prj, .cpg) a AutoCAD DXF (Drawing Exchange Format)
 * Převod geometrie z shapefile do WKT formátu
 * Podpora pro varianty souřadnicové systémy S-JTSK a WGS 84 (EPSG:4326)
+
 * Varianty S-JTSK:
+
 | EPSG Code | Search Text                      |
 |-----------|----------------------------------|
 | 2065      | S-JTSK_Ferro_Krovak              |
