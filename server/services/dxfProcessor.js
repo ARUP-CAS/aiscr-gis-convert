@@ -20,7 +20,7 @@ async function processDXF(filePath) {
 
         const { features, relevantAttributes } = processEntities(dxf.entities);
         const epsgInfo = await getEPSG(filePath, dxf.entities);
-    
+
         return {
             features,
             relevantAttributes: relevantAttributes.map(attr => ATTRIBUTE_MAPPING[attr] || attr),
@@ -78,16 +78,35 @@ function convertEntityToFeature(entity, idCounter) {
             case 'LWPOLYLINE':
             case 'POLYLINE':
                 if (Array.isArray(entity.vertices) && entity.vertices.length > 1) {
-                    const coordinates = entity.vertices.map(v => [v.x, v.y]).filter(coord => coord.every(c => typeof c === 'number'));
+                    // Extrahujeme souřadnice x a y z vrcholů a filtrujeme pouze validní souřadnice
+                    const coordinates = entity.vertices
+                        .map(v => [v.x, v.y])
+                        .filter(coord => coord.every(c => typeof c === 'number'));
+
+                    // Zkontrolujeme, zda máme dostatek souřadnic k vytvoření polygonu
                     if (coordinates.length > 1) {
+                        // Kontrola, zda má být polygon uzavřen
+                        const isEntityShapeClosed = entity.shape;
+                        const isFirstAndLastSame =
+                            coordinates[0][0] === coordinates[coordinates.length - 1][0] &&
+                            coordinates[0][1] === coordinates[coordinates.length - 1][1];
+
+                        // Pokud polygon není uzavřený (nebo pokud není `entity.shape` pravdivé), přidáme první bod na konec
+                        if (!isEntityShapeClosed && !isFirstAndLastSame) {
+                            coordinates.push(coordinates[0]);
+                        }
+
+                        // Vytvoříme geometrii typu Polygon nebo LineString
                         geometry = {
-                            type: entity.shape ? 'Polygon' : 'LineString',
-                            coordinates: entity.shape ? [coordinates] : coordinates
+                            type: isEntityShapeClosed ? 'Polygon' : 'LineString',
+                            coordinates: isEntityShapeClosed ? [coordinates] : coordinates
                         };
-                        geometryType = entity.shape ? 'polygon' : 'line';
+                        geometryType = isEntityShapeClosed ? 'polygon' : 'line';
                     }
                 }
                 break;
+
+
             case 'CIRCLE':
                 const circleResult = dxfCircleToPolygon(entity);
                 geometry = circleResult.geometry;
@@ -133,7 +152,7 @@ function convertEntityToFeature(entity, idCounter) {
             },
             systemoveID: `Prvek_${idCounter}`  // Interní unikátní ID bez diakritiky
         };
-        
+
     } catch (error) {
         console.error(`Error processing entity of type ${entity.type}:`, error);
         console.log('Problematic entity:', JSON.stringify(entity, null, 2));

@@ -20,7 +20,7 @@ function Hero() {
                     </div>
                     <h1 className='display-3 mb-3'>AMČR GIS konvertor</h1>
                     <p className='lead mb-4'>
-                        Nástroj k převodu vybraných formátů geoprostorových dat do formátu WKT ve struktuře vhodné pro import do <a src="https://amcr.aiscr.cz/" target='blank'>systému AMČR</a>.
+                        Nástroj k převodu SHP dat do formátu WKT ve struktuře vhodné pro import do <a src="https://amcr.aiscr.cz/" target='blank'>systému AMČR</a>.
                     </p>
                 </Col>
             </Row>

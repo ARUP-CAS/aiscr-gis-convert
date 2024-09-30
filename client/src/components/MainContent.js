@@ -70,9 +70,9 @@ function MainContent({
                         <Nav.Item>
                             <Nav.Link eventKey="shp">SHP</Nav.Link>
                         </Nav.Item>
-                        <Nav.Item>
+                        {/* <Nav.Item>
                             <Nav.Link eventKey="dxf">DXF</Nav.Link>
-                        </Nav.Item>
+                        </Nav.Item>*/}
                     </Nav>
 
                     {/* Nahrávání SHP souborů */}

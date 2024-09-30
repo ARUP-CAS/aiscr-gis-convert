@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, Button, Row, Col } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCopy, faDownload, faTrashAlt, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faCopy, faDownload, faTrashAlt, faUpload, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 function ExportData({ exportContent, fileName, onRefresh, onReupload }) {
     const handleCopyToClipboard = () => {
@@ -72,7 +72,7 @@ function ExportData({ exportContent, fileName, onRefresh, onReupload }) {
                     </Row>
                 </>
             ) : (
-                <p>Je nutné mít zadaný atribut pro label, validní EPSG a alespoň jeden označený prvek  pro export.</p>
+                <p><FontAwesomeIcon icon={faExclamationTriangle} className="text-warning"/>&nbsp;Je nutné mít zadaný atribut pro label, validní EPSG a alespoň jeden označený prvek  pro export.</p>
             )}
         </div>
     );
