@@ -9,7 +9,7 @@ Tento projekt poskytuje webový nástroj pro převod vybraných formátů geopro
 
 ## Funkce
 
-- Nahrávání a zpracování souborů ve formátu Shapefile (.shp, .dbf, .prj, .cpg) a AutoCAD DXF (Drawing Exchange Format)
+- Nahrávání a zpracování souborů ve formátu Shapefile (.shp, .dbf, .prj, .cpg)
 - Převod geometrie ze Shapefile do WKT formátu
 - Podpora pro varianty souřadnicových systémů S-JTSK a WGS 84 (EPSG:4326)
   
@@ -29,7 +29,7 @@ Tento projekt poskytuje webový nástroj pro převod vybraných formátů geopro
 
 - Zobrazení atributových dat spojených s geometrií
 - Uživatelsky přívětivé rozhraní postavené na React.js
-- Robustní backend API využívající Express.js
+- Backend API využívající Express.js
 
 ## Technologie
 
