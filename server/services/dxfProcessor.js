@@ -11,10 +11,18 @@ const ATTRIBUTE_MAPPING = {
     'name': 'Název'
 };
 
+const path = require('path');
+const ROOT_DIR = path.resolve(__dirname, '../../uploads'); // Adjust the path as needed
+
 async function processDXF(filePath) {
     console.log(`Processing DXF file: ${filePath}`);
     try {
-        const dxfContent = await fs.readFile(filePath, 'utf-8');
+        const resolvedPath = path.resolve(ROOT_DIR, filePath);
+        const normalizedPath = await fs.realpath(resolvedPath);
+        if (!normalizedPath.startsWith(ROOT_DIR)) {
+            throw new Error('Invalid file path');
+        }
+        const dxfContent = await fs.readFile(normalizedPath, 'utf-8');
         const parser = new DxfParser();
         const dxf = parser.parse(dxfContent);
 
