@@ -39,7 +39,7 @@ async function deleteFiles(files) {
             await fs.unlink(file.path);
             // console.log(`Deleted file: ${file.path}`);
         } catch (error) {
-            console.error(`Error deleting file ${file.path}:`, error);
+            console.error('Error deleting file %s:', file.path, error);
         }
     }
 }
