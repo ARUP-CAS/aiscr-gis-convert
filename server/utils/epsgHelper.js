@@ -27,11 +27,20 @@ const S_JTSK_VARIANTS = [
     { epsg: 102067, searchText: 'S-JTSK_Krovak_East_North' }
 ];
 
+const path = require('path');
+
 async function getEPSG(filePath, entities = null) {
     const fileExtension = filePath.split('.').pop().toLowerCase();
+    const rootDir = path.resolve(config.UPLOAD_DIR);
+    const resolvedPath = path.resolve(rootDir, filePath);
+
+    if (!resolvedPath.startsWith(rootDir)) {
+        console.warn('Invalid file path.');
+        return null;
+    }
 
     if (fileExtension === 'shp') {
-        return getEPSGForSHP(filePath);
+        return getEPSGForSHP(resolvedPath);
     } else if (fileExtension === 'dxf') {
         return getEPSGForDXF(entities);
     } else {
@@ -42,11 +51,19 @@ async function getEPSG(filePath, entities = null) {
 
 async function getEPSGForSHP(shpPath) {
     const prjPath = shpPath.replace('.shp', '.prj');
+    const rootDir = path.resolve(config.UPLOAD_DIR);
+    const resolvedPrjPath = path.resolve(rootDir, prjPath);
+
+    if (!resolvedPrjPath.startsWith(rootDir)) {
+        console.warn('Invalid PRJ file path.');
+        return null;
+    }
+
     let epsg = null;
 
     try {
         // Načtení obsahu PRJ souboru
-        const prjContent = await fs.readFile(prjPath, 'utf8');
+        const prjContent = await fs.readFile(resolvedPrjPath, 'utf8');
 
         // Získání EPSG kódu pomocí prj2epsg
         const epsgCode = prj2epsg.fromPRJ(prjContent);
