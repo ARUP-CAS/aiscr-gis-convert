@@ -5,9 +5,9 @@ authors:
   given-names: "Tomáš"
   affiliation: "Czech Academy of Sciences, Institute of Archaeology, Prague"
 title: "AMČR GIS konvertor"
-version: "v1.0.0-rc1"
+version: "v1.0.0"
 doi: 10.5281/zenodo.13791113
-date-released: 2024-09-19
+date-released: 2024-10-24
 url: "https://github.com/ARUP-CAS/aiscr-gis-convert"
 repository-code: "https://github.com/ARUP-CAS/aiscr-gis-convert"
 license: MIT
