@@ -1,7 +1,14 @@
 // src/components/Hero.js
 import React from 'react';
-import { Row, Col, Container } from 'react-bootstrap';
-import { NavodModal } from './NavodModal';
+import { Row, Col, Container, Button } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+// import { NavodModal } from './NavodModal';
+
+const handleLink = () => {
+    window.open('https://amcr-help.aiscr.cz/amcr/pian-import.html#am%C4%8Dr-gis-konvertor', '_blank');
+}
+
 
 function Hero() {
     return (
@@ -26,7 +33,10 @@ function Hero() {
             </Row>
             <Row className="justify-content-center pb-4 bg-body-secondary">
                 <Col md="12" className="text-center">
-                    <NavodModal />
+                    <Button variant="outline-secondary" onClick={handleLink}>
+                        <FontAwesomeIcon icon={faUpRightFromSquare} /> Návod
+                    </Button>
+                    {/* <NavodModal /> */}
                 </Col>
             </Row>
         </Container>
