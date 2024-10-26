@@ -208,7 +208,7 @@ function ShapefileInfo({ shapefileData, onSettingsChange, onFeatureSelection }) 
                                     ))}
                                 </Form.Select>
                                 <Form.Text id="labelHelpBlock" muted>
-                                    Položka bude sloužit<br />jako label pro jednotlivé polygony.
+                                    Položka bude sloužit<br />jako label pro jednotlivé prvky.
                                 </Form.Text>
                             </Form.Group>
                             <Form.Group as={Col} sm={12} md={6}>

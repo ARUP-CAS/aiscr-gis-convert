@@ -205,7 +205,7 @@ const FileUpload = forwardRef(({ setShapefileData, onReset }, ref) => {
                 <Form.Label>
                     Vyberte soubory shapefilu
                     <br />
-                    <small className="text-muted">Je možné vybrat více kompletních SHP (např. všech souborů v adresáři), následně budete vyzváni k výběru jednoho konkrétního.</small>
+                    <small className="text-muted">Je možné vybrat více kompletních SHP (např. všechny soubory v adresáři), následně budete vyzváni k výběru jednoho konkrétního.</small>
                     <br />
                     <small className="text-muted fw-bolder">Povinné: {SUPPORTED_EXTENSIONS.required.join(', ')}</small>
                     <br />
