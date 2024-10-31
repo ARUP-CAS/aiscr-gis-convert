@@ -12,7 +12,8 @@ const ATTRIBUTE_MAPPING = {
 };
 
 async function processDXF(filePath) {
-    console.log(`Processing DXF file: ${filePath}`);
+    const sanitizedFilePath = filePath.replace(/\n|\r/g, "");
+    console.log(`Processing DXF file: ${sanitizedFilePath}`);
     try {
         const dxfContent = await fs.readFile(filePath, 'utf-8');
         const parser = new DxfParser();
