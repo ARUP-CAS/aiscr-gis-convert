@@ -9,7 +9,8 @@ const reprojectionHelper = require('../utils/reprojectionHelper');
 
 
 async function convertShapefileToGeoJSON(shpPath) {
-    console.log(`Zpracování SHP: ${shpPath}`);
+    const sanitizedShpPath = shpPath.replace(/\n|\r/g, "");
+    console.log(`Zpracování SHP: ${sanitizedShpPath}`);
     try {
         const source = await shapefile.open(shpPath);
 
@@ -108,7 +109,7 @@ async function convertShapefileToGeoJSON(shpPath) {
         return { features: reprojectedFeatures, attributes, originalEPSG, currentEPSG, reprojected };
 
     } catch (error) {
-        console.error(`Došlo k chybě při zpracování ${shpPath}:`, error);
+        console.error(`Došlo k chybě při zpracování ${sanitizedShpPath}:`, error);
         throw error;
     }
 }
