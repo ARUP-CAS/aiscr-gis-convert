@@ -1,32 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Form, Container } from 'react-bootstrap';
 
+/**
+ * Komponenta pro zobrazení a úpravu informací o GPX datech.
+ * 
+ * @param {Array} data - Pole prvků GPX (obsahuje label, typ geometrie, atd.).
+ * @param {Function} onUpdate - Callback pro aktualizaci dat při změnách.
+ */
 function GPXInfo({ data, onUpdate }) {
     const [features, setFeatures] = useState([]);
 
-    // Inicializace dat z props
+    // Inicializace dat z props do lokálního stavu komponenty.
     useEffect(() => {
         if (data.length > 0) {
             const initialFeatures = data.map((feature) => ({
                 ...feature,
-                export: feature.export ?? true, // Výchozí hodnota
+                // Přidáme výchozí hodnotu pro vlastnost 'export', pokud chybí.
+                export: feature.export ?? true,
             }));
             setFeatures(initialFeatures);
         }
     }, [data]);
 
-    // Aktualizace při změně export checkboxu
+    /**
+     * Změna stavu vlastnosti 'export' pro daný prvek.
+     * 
+     * @param {number} index - Index prvku v poli features.
+     * @param {boolean} checked - Nový stav checkboxu.
+     */
     const handleExportChange = (index, checked) => {
-        console.log('Before update:', features);
         const updatedFeatures = features.map((feature, i) =>
             i === index ? { ...feature, export: checked } : feature
         );
-        console.log('After update:', updatedFeatures);
         setFeatures(updatedFeatures);
-        onUpdate(updatedFeatures); // Propagace změn
+        onUpdate(updatedFeatures); // Propagace změn zpět do MainContent
     };
 
-    // Aktualizace při změně labelu
+    /**
+     * Změna labelu pro daný prvek.
+     * 
+     * @param {number} index - Index prvku v poli features.
+     * @param {string} newLabel - Nový text pro label.
+     */
     const handleLabelChange = (index, newLabel) => {
         const updatedFeatures = [...features];
         updatedFeatures[index].label = newLabel;
@@ -34,8 +49,8 @@ function GPXInfo({ data, onUpdate }) {
         onUpdate(updatedFeatures); // Odeslání aktualizovaných dat
     };
 
+    // Logování změn stavu features (pro ladění).
     useEffect(() => {
-        console.log('Re-render GPXInfo with features:', features);
     }, [features]);
 
     return (

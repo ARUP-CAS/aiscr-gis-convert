@@ -8,11 +8,12 @@ const config = require('../config');
 
 const router = express.Router();
 
-// Konfigurace multer pro upload GPX souborů
+// Konfigurace Multer pro nahrávání GPX souborů
 const uploader = multer({
     storage: multer.diskStorage({
-        destination: config.UPLOAD_DIR,
+        destination: config.UPLOAD_DIR, // Adresář pro ukládání dočasných souborů
         filename: (req, file, cb) => {
+            // Generování bezpečného názvu souboru
             const ext = path.extname(file.originalname);
             const basename = path.basename(file.originalname, ext);
             const safeFilename = basename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
@@ -20,6 +21,7 @@ const uploader = multer({
         }
     }),
     fileFilter: (req, file, cb) => {
+        // Filtr pro povolení pouze GPX souborů
         const ext = path.extname(file.originalname).toLowerCase();
         if (ext === '.gpx') {
             cb(null, true);
@@ -28,11 +30,11 @@ const uploader = multer({
         }
     },
     limits: {
-        fileSize: config.MAX_FILE_SIZE
-    } 
+        fileSize: config.MAX_FILE_SIZE // Maximální velikost souboru
+    }
 });
 
-// Funkce pro mazání souborů
+// Funkce pro mazání dočasných souborů
 async function deleteFile(filePath) {
     try {
         await fs.unlink(filePath);
@@ -42,32 +44,35 @@ async function deleteFile(filePath) {
     }
 }
 
-// POST route pro upload GPX
+// POST endpoint pro nahrávání GPX souborů
 router.post('/', uploader.single('gpxFile'), async (req, res) => {
     if (!req.file) {
+        // Zpracování situace, kdy nebyl nahrán žádný soubor
         return res.status(400).json({ error: 'Nebyl nahrán žádný GPX soubor.' });
     }
 
     try {
+        // Zpracování GPX souboru
         const result = await processGPX(req.file.path);
         const fileName = decodeText(req.file.originalname);
-        
-        console.log(result.features);
 
+        // Příprava odpovědi obsahující zpracované informace
         const response = {
             fileName,
             fileSize: req.file.size,
             uploadTime: new Date().toISOString(),
-            epsgInfo: result.epsgInfo,
-            features: result.features
+            epsgInfo: result.epsgInfo, // Informace o EPSG z GPX
+            features: result.features // Získané prvky z GPX
         };
 
-        // Mazání souboru po zpracování
+        // Mazání souboru po úspěšném zpracování
         await deleteFile(req.file.path);
 
-        res.json(response);
+        res.json(response); // Odeslání odpovědi klientovi
     } catch (error) {
         console.error('Error processing GPX file:', error);
+
+        // Mazání souboru při chybě
         await deleteFile(req.file.path);
         res.status(500).json({ error: 'Chyba při zpracování souboru: ' + error.message });
     }

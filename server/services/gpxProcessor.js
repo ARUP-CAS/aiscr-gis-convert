@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
-const { parseStringPromise } = require('xml2js');
-const TerraformerWKT = require('terraformer-wkt-parser');
+const { parseStringPromise } = require('xml2js'); // Pro parsování XML
+const TerraformerWKT = require('terraformer-wkt-parser'); // Pro práci s WKT
 
 /**
  * Zpracuje GPX soubor a vrátí informace o prvcích.
@@ -14,31 +14,34 @@ async function processGPX(filePath) {
         // Načtení obsahu GPX souboru
         const gpxContent = await fs.readFile(filePath, 'utf-8');
 
-        // Parsování GPX XML na JS objekt
+        // Parsování GPX XML do JS objektu
         const gpxData = await parseStringPromise(gpxContent);
 
         const features = [];
-        const elements = extractElements(gpxData);
+        const elements = extractElements(gpxData); // Extrakce prvků z GPX dat
 
+        // Iterace přes extrahované prvky a vytváření feature objektů
         elements.forEach((element, index) => {
-            const label = element.name || `Prvek_${index + 1}`;
-            const geometryType = determineGeometryType(element.geometry);
+            const label = element.name || `Prvek_${index + 1}`; // Název prvku
+            const geometryType = determineGeometryType(element.geometry); // Typ geometrie
 
+            // Přeskakování prvků bez platné geometrie
             if (!geometryType) {
                 console.warn(`Skipping element without valid geometry: ${label}`);
                 return;
             }
 
+            // Přidání prvku do seznamu features
             features.push({
                 label,
-                epsg: '4326', // Zatím pevně 4326. Budoucí testování EPSG podle rozsahu možné.
-                geometry: convertToWKT(geometryType, element.geometry),
-                geometryType: geometryType,
-                systemoveID: `Prvek_${index}`  // Interní unikátní ID bez diakritiky
+                epsg: '4326', // EPSG pevně nastaven na WGS 84
+                geometry: convertToWKT(geometryType, element.geometry), // Převod geometrie do WKT
+                geometryType,
+                systemoveID: `Prvek_${index}` // Unikátní ID pro prvek
             });
         });
 
-        return { features };
+        return { features }; // Vrací seznam feature objektů
     } catch (error) {
         console.error(`Error processing GPX file ${filePath}:`, error);
         throw error;
@@ -46,9 +49,9 @@ async function processGPX(filePath) {
 }
 
 /**
- * Extrahuje relevantní prvky z GPX objektu.
+ * Extrahuje relevantní prvky z GPX dat (waypoints, trasy, routy).
  * @param {Object} gpxData Parsed GPX data.
- * @returns {Array} Pole prvků s name a geometrií.
+ * @returns {Array} Pole prvků s názvem a geometrií.
  */
 function extractElements(gpxData) {
     const elements = [];
@@ -105,11 +108,11 @@ function determineGeometryType(points) {
     if (!points || points.length === 0) return null;
 
     if (points.length === 1) {
-        return 'POINT';
+        return 'POINT'; // Bodová geometrie
     } else if (points.length > 2 && isPolygon(points)) {
-        return 'POLYGON';
+        return 'POLYGON'; // Uzavřená geometrie
     } else {
-        return 'LINESTRING';
+        return 'LINESTRING'; // Linie
     }
 }
 
@@ -121,7 +124,7 @@ function determineGeometryType(points) {
 function isPolygon(points) {
     const [firstLon, firstLat] = points[0];
     const [lastLon, lastLat] = points[points.length - 1];
-    return firstLon === lastLon && firstLat === lastLat;
+    return firstLon === lastLon && firstLat === lastLat; // Kontrola uzavření geometrie
 }
 
 /**

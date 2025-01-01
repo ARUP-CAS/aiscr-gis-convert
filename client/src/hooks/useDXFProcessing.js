@@ -21,7 +21,6 @@ function useDXFProcessing() {
         window.location.reload();
     };
 
-
     // Funkce pro vyčištění dat a opětovné nahrání souborů
     const handleDXFReupload = () => {
         alert('Implementace vyčištění dat a opětovného nahrání souborů. Dočasně dojde k obnovení stránky');

@@ -44,22 +44,27 @@ function MainContent({
     setGPXData,
     gpxExportContent,
     handleGPXFeatureSelection,
-    handleGPXRefresh,
-    handleGPXReupload
+    onGPXRefresh,
+    onGPXReupload
 
 }) {
-    const [activeUploadTab, setActiveUploadTab] = useState('shp');
+    const [activeUploadTab, setActiveUploadTab] = useState('shp'); // Výchozí karta
 
-    // Výchozí stav - všechny prvky jsou zaškrtnuté po načtení souboru
+    /**
+     * Inicializace GPX dat s výchozím nastavením exportu.
+     */
     const handleGPXDataLoaded = (data) => {
         setGPXData(data);
         const initialFeatures = data.features.map(feature => ({
             ...feature,
-            export: true, // Výchozí hodnota - všechny prvky zaškrtnuté
+            export: true, // Výchozí stav - všechny prvky označené k exportu
         }));
         setGPXData((prev) => ({ ...prev, features: initialFeatures }));
     };
 
+    /**
+     * Reset všech nahraných dat (SHP, DXF, GPX).
+     */
     const handleReset = () => {
         setShapefileData(null);
         setDXFData(null);
@@ -68,6 +73,7 @@ function MainContent({
 
     return (
         <>
+            {/* Výběr souborového typu k nahrání */}
             <Row className="justify-content-md-center pt-4">
                 <Col md="6">
                     <h2 className='display-6'>1. Nahrát soubory</h2>
@@ -75,6 +81,9 @@ function MainContent({
                         <Nav.Item>
                             <Nav.Link eventKey="shp">SHP</Nav.Link>
                         </Nav.Item>
+                        {/* <Nav.Item>
+                            <Nav.Link eventKey="dxf">DXF</Nav.Link>
+                        </Nav.Item> */}
                         <Nav.Item>
                             <Nav.Link eventKey="gpx">GPX</Nav.Link>
                         </Nav.Item>
@@ -85,6 +94,14 @@ function MainContent({
                         <FileUpload
                             setShapefileData={setShapefileData}
                             ref={fileUploadRef}
+                            onReset={handleReset}
+                        />
+                    )}
+
+                    {/* Nahrávání DXF souborů */}
+                    {activeUploadTab === 'dxf' && (
+                        <DXFUpload
+                            onDXFDataLoaded={(data) => setDXFData(data)} // Předání DXF dat
                             onReset={handleReset}
                         />
                     )}
@@ -126,6 +143,35 @@ function MainContent({
                 </>
             )}
 
+            {/* Sekce pro zobrazení informací o DXF souboru */}
+            {dxfData && activeUploadTab === 'dxf' && (
+                <>
+                    <Row className="justify-content-center py-2">
+                        <Col md="10">
+                            <h2 className='display-6 mt-5 mb-4'>2. Informace o DXF souboru</h2>
+                            <DXFInfo
+                                dxfData={dxfData}
+                                dxfLabelAttribute={dxfLabelAttribute}
+                                onLabelAttributeChange={onDXFLabelAttributeChange}
+                                checkedFeatures={new Set(dxfData.features.map(feature => feature.systemoveID))} // Vytvoření Setu s ID
+                                onCheckedFeatureToggle={(id) => console.log(`Toggle ID: ${id}`)} // Dummy handler
+                            />
+                        </Col>
+                    </Row>
+                    <Row className="justify-content-center py-2">
+                        <Col md="10">
+                            <h2 className='display-6 mt-5 mb-4'>3. Export dat</h2>
+                            <DXFExportData
+                                dxfData={dxfData}
+                                dxfExportContent={dxfExportContent}
+                                onRefresh={onDXFRefresh}
+                                onReupload={onDXFReupload}
+                            />
+                        </Col>
+                    </Row>
+                </>
+            )}
+
             {/* Sekce pro zobrazení informací o GPX souboru */}
             {gpxData && activeUploadTab === 'gpx' && (
                 <>
@@ -148,9 +194,8 @@ function MainContent({
                             <h2 className='display-6 mt-5 mb-4'>3. Export dat</h2>
                             <GPXExportData
                                 gpxData={gpxData}
-                                checkedFeatures={new Set(gpxData.features.filter(feature => feature.export).map(feature => feature.systemoveID))}
-                                onRefresh={handleGPXRefresh}
-                                onReupload={handleGPXReupload}
+                                onRefresh={onGPXRefresh}
+                                onReupload={onGPXReupload}
                             />
                         </Col>
                     </Row>
