@@ -7,8 +7,10 @@ import Hero from './components/Hero';
 import MainContent from './components/MainContent';
 import AlertModal from './components/AlertModal';
 import Footer from './components/Footer';
+
 import useShapefileProcessing from './hooks/useShapefileProcessing';
 import useDXFProcessing from './hooks/useDXFProcessing';
+import useGPXProcessing from './hooks/useGPXProcessing';
 import useAlertModal from './hooks/useAlertModal';
 
 function App() {
@@ -36,6 +38,19 @@ function App() {
         handleDXFRefresh,
         handleDXFReupload
     } = useDXFProcessing();
+
+    // Použití custom hooku pro zpracování GPX dat
+    const {
+        gpxData,
+        setGPXData,
+        gpxExportContent,
+        gpxLabelAttribute,
+        setGPXLabelAttribute,
+        handleGPXExportSettingsChange,
+        handleGPXFeatureSelection,
+        handleGPXRefresh,
+        handleGPXReupload
+    } = useGPXProcessing();
 
     // Použití custom hooku pro zobrazení alert modalu
     const { alertModal, showAlert, hideAlert, confirmAction } = useAlertModal();
@@ -71,6 +86,15 @@ function App() {
                     onDXFFeatureSelection={handleDXFFeatureSelection}
                     onDXFRefresh={() => showAlert('Potvrzení', 'Opravdu chcete smazat DXF data?', 'dxfRefresh')}
                     onDXFReupload={() => showAlert('Potvrzení', 'Opravdu chcete vymazat DXF data a nahrát nový DXF soubor?', 'dxfReupload')}
+                
+                    // Podpora pro GPX
+                    gpxData={gpxData}
+                    setGPXData={setGPXData}
+                    gpxExportContent={gpxExportContent}
+                    onGPXFeatureSelection={handleGPXFeatureSelection}
+                    onGPXRefresh={() => showAlert('Potvrzení', 'Opravdu chcete smazat GPX data?', 'gpxRefresh')}
+                    onGPXReupload={() => showAlert('Potvrzení', 'Opravdu chcete vymazat GPX data a nahrát nový GPX soubor?', 'gpxReupload')}
+
                 />
             </Container>
             {/* Patička aplikace */}
@@ -81,7 +105,11 @@ function App() {
                 onHide={hideAlert}
                 title={alertModal.title}
                 message={alertModal.message}
-                onConfirm={() => confirmAction(handleRefresh, handleReupload, handleDXFRefresh, handleDXFReupload)}
+                onConfirm={() => confirmAction(
+                    handleRefresh, handleReupload, 
+                    handleDXFRefresh, handleDXFReupload, 
+                    handleGPXRefresh, handleGPXReupload
+                )}
             />
         </div>
     );

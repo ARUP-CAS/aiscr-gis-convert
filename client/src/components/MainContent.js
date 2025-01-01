@@ -1,13 +1,24 @@
 import React, { useState, useCallback } from 'react';
 import { Row, Col, Nav } from 'react-bootstrap';
+
+// SHP
 import FileUpload from './FileUpload';
-import DXFUpload from './DXFUpload';
 import ShapefileInfo from './ShapefileInfo';
+import ExportData from './ExportData';
+
+// DXF
+import DXFUpload from './DXFUpload';
 import DXFInfo from './DXFInfo';
-import ExportData from './ExportData';  // Původní export pro SHP
-import DXFExportData from './DXFExportData';  // Nový export pro DXF
+import DXFExportData from './DXFExportData';
+
+// GPX
+import GPXUpload from './GPXUpload';
+import GPXInfo from './GPXInfo';
+import GPXExportData from './GPXExportData';
 
 function MainContent({
+
+    // Props pro SHP
     shapefileData,
     setShapefileData,
     exportContent,
@@ -16,7 +27,7 @@ function MainContent({
     onRefresh,
     onReupload,
     fileUploadRef,
- 
+
     // Props pro DXF
     dxfData,
     setDXFData,
@@ -26,41 +37,35 @@ function MainContent({
     onDXFExportSettingsChange,
     onDXFFeatureSelection,
     onDXFRefresh,
-    onDXFReupload
+    onDXFReupload,
+
+    // Props pro GPX
+    gpxData,
+    setGPXData,
+    gpxExportContent,
+    handleGPXFeatureSelection,
+    handleGPXRefresh,
+    handleGPXReupload
+
 }) {
     const [activeUploadTab, setActiveUploadTab] = useState('shp');
-    const [checkedFeatures, setCheckedFeatures] = useState(new Set());  // Stav pro zaškrtnuté prvky pro DXF
 
     // Výchozí stav - všechny prvky jsou zaškrtnuté po načtení souboru
-    const handleDXFDataLoaded = (data) => {
-        setDXFData(data);
-        const allFeatureIds = new Set(data.features.map((feature) => feature.systemoveID));
-        setCheckedFeatures(allFeatureIds);  // Zaškrtneme všechny prvky jako výchozí
-    };
-
-    const handleDXFLabelAttributeChange = useCallback((attribute) => {
-        onDXFLabelAttributeChange(attribute);
-        onDXFExportSettingsChange({ labelAttribute: attribute });
-    }, [onDXFLabelAttributeChange, onDXFExportSettingsChange]);
-
-    // Funkce pro správu zaškrtnutí/odškrtnutí prvků
-    const handleCheckedFeatureToggle = (systemoveID) => {
-        setCheckedFeatures((prevChecked) => {
-            const newChecked = new Set(prevChecked);
-            if (newChecked.has(systemoveID)) {
-                newChecked.delete(systemoveID);
-            } else {
-                newChecked.add(systemoveID);
-            }
-            return newChecked;
-        });
+    const handleGPXDataLoaded = (data) => {
+        setGPXData(data);
+        const initialFeatures = data.features.map(feature => ({
+            ...feature,
+            export: true, // Výchozí hodnota - všechny prvky zaškrtnuté
+        }));
+        setGPXData((prev) => ({ ...prev, features: initialFeatures }));
     };
 
     const handleReset = () => {
         setShapefileData(null);
         setDXFData(null);
+        setGPXData(null);
     };
-    
+
     return (
         <>
             <Row className="justify-content-md-center pt-4">
@@ -70,9 +75,9 @@ function MainContent({
                         <Nav.Item>
                             <Nav.Link eventKey="shp">SHP</Nav.Link>
                         </Nav.Item>
-                        {/* <Nav.Item>
-                            <Nav.Link eventKey="dxf">DXF</Nav.Link>
-                        </Nav.Item>*/}
+                        <Nav.Item>
+                            <Nav.Link eventKey="gpx">GPX</Nav.Link>
+                        </Nav.Item>
                     </Nav>
 
                     {/* Nahrávání SHP souborů */}
@@ -84,10 +89,10 @@ function MainContent({
                         />
                     )}
 
-                    {/* Nahrávání DXF souborů */}
-                    {activeUploadTab === 'dxf' && (
-                        <DXFUpload
-                            onDXFDataLoaded={handleDXFDataLoaded}
+                    {/* Nahrávání GPX souborů */}
+                    {activeUploadTab === 'gpx' && (
+                        <GPXUpload
+                            onGPXDataLoaded={handleGPXDataLoaded}
                             onReset={handleReset}
                         />
                     )}
@@ -121,33 +126,31 @@ function MainContent({
                 </>
             )}
 
-            {/* Sekce pro zobrazení informací o DXF souboru */}
-            {dxfData && activeUploadTab === 'dxf' && (
+            {/* Sekce pro zobrazení informací o GPX souboru */}
+            {gpxData && activeUploadTab === 'gpx' && (
                 <>
                     <Row className="justify-content-center py-2">
                         <Col md="10">
-                            <h2 className='display-6 mt-5 mb-4'>2. Informace o DXF souboru</h2>
-                            <DXFInfo
-                                dxfData={dxfData}
-                                dxfLabelAttribute={dxfLabelAttribute}
-                                onLabelAttributeChange={handleDXFLabelAttributeChange}
-                                checkedFeatures={checkedFeatures}
-                                onCheckedFeatureToggle={handleCheckedFeatureToggle}
+                            <h2 className='display-6 mt-5 mb-4'>2. Informace o GPX souboru</h2>
+                            <GPXInfo
+                                data={gpxData.features}
+                                onUpdate={(updatedFeatures) => {
+                                    setGPXData((prev) => ({
+                                        ...prev,
+                                        features: updatedFeatures,
+                                    }));
+                                }}
                             />
                         </Col>
                     </Row>
                     <Row className="justify-content-center py-2">
                         <Col md="10">
                             <h2 className='display-6 mt-5 mb-4'>3. Export dat</h2>
-                            {/* Export dat pro DXF */}
-                            <DXFExportData
-                                activeTab={activeUploadTab}
-                                dxfData={dxfData}
-                                dxfLabelAttribute={dxfLabelAttribute}
-                                epsg={'4326'}  // Můžeme později dynamizovat výběr EPSG
-                                checkedFeatures={checkedFeatures}
-                                onRefresh={onDXFRefresh}
-                                onReupload={onDXFReupload}
+                            <GPXExportData
+                                gpxData={gpxData}
+                                checkedFeatures={new Set(gpxData.features.filter(feature => feature.export).map(feature => feature.systemoveID))}
+                                onRefresh={handleGPXRefresh}
+                                onReupload={handleGPXReupload}
                             />
                         </Col>
                     </Row>
