@@ -15,7 +15,7 @@
     "epsg-index": "^2.0.0",
     "postcss-loader": "^8.1.1",
     "react": "^18.3.1",
-    "react-bootstrap": "^2.10.4",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "resolve-url-loader": "^5.0.0",
