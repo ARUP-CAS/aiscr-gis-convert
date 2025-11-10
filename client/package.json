@@ -21,7 +21,7 @@
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.78.0",
     "sass-loader": "^16.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^5.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
