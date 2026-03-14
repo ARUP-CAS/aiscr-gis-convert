@@ -1,0 +1,18 @@
+services:
+  server:
+    build: ./server
+    ports:
+      - "3006:3006"
+    environment:
+      - PORT=3006
+    tmpfs:
+      - /app/uploads
+    restart: unless-stopped
+
+  client:
+    build: ./client
+    ports:
+      - "8081:80"
+    depends_on:
+      - server
+    restart: unless-stopped
