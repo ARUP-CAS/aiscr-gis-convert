@@ -37,7 +37,12 @@ const uploader = multer({
 // Funkce pro mazání dočasných souborů
 async function deleteFile(filePath) {
     try {
-        await fs.unlink(filePath);
+        const resolvedPath = path.resolve(filePath);
+        if (!resolvedPath.startsWith(path.resolve(config.UPLOAD_DIR))) {
+            console.error('Attempt to delete file outside of upload directory: %s', resolvedPath);
+            return;
+        }
+        await fs.unlink(resolvedPath);
     } catch (error) {
         console.error('Error deleting file %s:', filePath, error);
     }

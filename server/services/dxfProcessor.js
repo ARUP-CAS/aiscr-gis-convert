@@ -1,8 +1,10 @@
 const fs = require('fs').promises;
+const path = require('path');
 const DxfParser = require('dxf-parser');
 const TerraformerWKT = require('terraformer-wkt-parser');
 const { getEPSG } = require('../utils/epsgHelper');
 const { dxfCircleToPolygon } = require('../utils/circleToPolygonUtil');
+const { UPLOAD_DIR } = require('../config');
 
 const ATTRIBUTE_MAPPING = {
     'handle': 'ID prvku',
@@ -13,8 +15,12 @@ const ATTRIBUTE_MAPPING = {
 
 async function processDXF(filePath) {
     console.log('Processing DXF file: %s', filePath);
+    const resolvedPath = path.resolve(filePath);
+    if (!resolvedPath.startsWith(path.resolve(UPLOAD_DIR))) {
+        throw new Error('Attempt to access file outside of upload directory.');
+    }
     try {
-        const dxfContent = await fs.readFile(filePath, 'utf-8');
+        const dxfContent = await fs.readFile(resolvedPath, 'utf-8');
         const parser = new DxfParser();
         const dxf = parser.parse(dxfContent);
 
