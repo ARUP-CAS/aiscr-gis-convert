@@ -22,4 +22,5 @@
 /client/yarn-debug.log*
 /client/yarn-error.log*
 
-/server/uploads 
+/server/uploads
+/server/dev-output

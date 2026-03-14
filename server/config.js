@@ -34,6 +34,4 @@ module.exports = {
         UPLOAD: '/upload'
     },
 
-    // MapTiler API key, transformace souřadnic
-    APIKEY_MAPTILER: 'Zp14banTfvVjXIDSc0w7'
 };

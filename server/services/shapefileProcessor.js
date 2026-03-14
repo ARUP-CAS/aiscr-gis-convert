@@ -103,7 +103,7 @@ async function convertShapefileToGeoJSON(shpPath) {
         // Reprojekce
         console.log(`\tReprojekce do EPSG 5514`);
         currentEPSG = 5514;
-        const reprojectedFeatures = await reprojectionHelper.reprojectFeaturesTo5514(features, epsg);
+        const reprojectedFeatures = reprojectionHelper.reprojectFeaturesTo5514(features, epsg);
         reprojected = true;
         return { features: reprojectedFeatures, attributes, originalEPSG, currentEPSG, reprojected };
 

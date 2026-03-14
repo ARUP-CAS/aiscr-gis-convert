@@ -1,83 +1,57 @@
 const proj4 = require('proj4');
-const projDefinitions = require('./projConfig'); // Import definic z konfigurace
-const { config, coordinates } = require('@maptiler/client'); // Import MapTiler API klienta
-const {APIKEY_MAPTILER} = require('../config');
+const projDefinitions = require('./projConfig');
 
-// Nastavení MapTiler API klíče
-config.apiKey = APIKEY_MAPTILER;
-
-// Registrace všech definic z konfiguračního souboru do proj4 (pro případné další použití)
+// Registrace všech definic z konfiguračního souboru do proj4
 projDefinitions.forEach(def => {
     proj4.defs(def.code, def.projString);
 });
 
+const transformPoint = (coordinate, fromEPSG) => {
+    const [x, y] = coordinate;
+    if (x === undefined || y === undefined) {
+        console.error('Chyba: Nedefinované souřadnice', coordinate);
+        return null;
+    }
+    return proj4(`EPSG:${fromEPSG}`, 'EPSG:5514', [x, y]);
+};
+
 const reprojectionHelper = {
-    reprojectFeaturesTo5514: async (features, originalEPSG) => {
+    reprojectFeaturesTo5514: (features, originalEPSG) => {
         console.log('--- Reprojekce na 5514 ---');
         try {
-            // Kontrola, zda je původní EPSG definován v proj4
             if (!proj4.defs(`EPSG:${originalEPSG}`)) {
                 throw new Error(`EPSG ${originalEPSG} není podporován.`);
             }
 
-            const reprojectedFeatures = await Promise.all(features.map(async (feature, index) => {
+            return features.map(feature => {
                 let reprojectedGeometry;
 
-                // Funkce pro transformaci bodu
-                const transformPoint = async (coordinate) => {
-                    const [x, y] = coordinate;
-                    if (x === undefined || y === undefined) {
-                        console.error('Chyba: Nedefinované souřadnice', coordinate);
-                        return null;
-                    }
-
-                    try {
-                        const transformedPoint = await coordinates.transform(
-                            [x, y],
-                            { sourceCrs: originalEPSG, targetCrs: 5514 }
-                        );
-                        const { x: transX, y: transY } = transformedPoint.results[0];
-                        //console.log(`Transformace bodu (${x}, ${y}) na (${transX}, ${transY})`);
-                        return [transX, transY];
-                    } catch (error) {
-                        console.error('Chyba při transformaci souřadnice:', error);
-                        return null;
-                    }
-                };
-
-                // Detekce typu geometrie a provedení reprojekce
                 switch (feature.geometry.type) {
                     case "Point":
                         console.log('--- Reprojektujeme Point');
-                        reprojectedGeometry = await transformPoint(feature.geometry.coordinates);
+                        reprojectedGeometry = transformPoint(feature.geometry.coordinates, originalEPSG);
                         break;
 
                     case "LineString":
                     case "MultiPoint":
                         console.log('--- Reprojektujeme LineString nebo MultiPoint');
-                        reprojectedGeometry = await Promise.all(feature.geometry.coordinates.map(transformPoint));
+                        reprojectedGeometry = feature.geometry.coordinates.map(c => transformPoint(c, originalEPSG));
                         break;
 
                     case "Polygon":
                     case "MultiLineString":
                         console.log('--- Reprojektujeme Polygon nebo MultiLineString');
-                        reprojectedGeometry = await Promise.all(
-                            feature.geometry.coordinates.map(async ring => {
-                                return await Promise.all(ring.map(transformPoint));
-                            })
+                        reprojectedGeometry = feature.geometry.coordinates.map(ring =>
+                            ring.map(c => transformPoint(c, originalEPSG))
                         );
                         break;
 
                     case "MultiPolygon":
                         console.log('--- Reprojektujeme MultiPolygon');
-                        reprojectedGeometry = await Promise.all(
-                            feature.geometry.coordinates.map(async polygon => {
-                                return await Promise.all(
-                                    polygon.map(async ring => {
-                                        return await Promise.all(ring.map(transformPoint));
-                                    })
-                                );
-                            })
+                        reprojectedGeometry = feature.geometry.coordinates.map(polygon =>
+                            polygon.map(ring =>
+                                ring.map(c => transformPoint(c, originalEPSG))
+                            )
                         );
                         break;
 
@@ -85,19 +59,14 @@ const reprojectionHelper = {
                         throw new Error(`Nepodporovaný typ geometrie: ${feature.geometry.type}`);
                 }
 
-                // Vytvoření nové feature s reprojektovanou geometrií
-                const newFeature = {
+                return {
                     ...feature,
                     geometry: {
                         ...feature.geometry,
                         coordinates: reprojectedGeometry
                     }
                 };
- 
-                return newFeature;
-            }));
-
-            return reprojectedFeatures;
+            });
         } catch (error) {
             console.error(`Chyba při reprojekci: ${error.message}`);
             return null;

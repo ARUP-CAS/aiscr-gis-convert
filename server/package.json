@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@maptiler/client": "^2.0.0",
     "cors": "^2.8.5",
     "dbffile": "^1.11.0",
     "dxf-parser": "^1.1.2",
