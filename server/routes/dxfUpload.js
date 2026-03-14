@@ -36,9 +36,8 @@ const uploader = multer({
 async function deleteFile(filePath) {
     try {
         await fs.unlink(filePath);
-        console.log(`Deleted file: ${filePath}`);
     } catch (error) {
-        console.error(`Error deleting file ${filePath}:`, error);
+        console.error('Error deleting file %s:', filePath, error);
     }
 }
 

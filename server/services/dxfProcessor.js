@@ -12,7 +12,7 @@ const ATTRIBUTE_MAPPING = {
 };
 
 async function processDXF(filePath) {
-    console.log(`Processing DXF file: ${filePath}`);
+    console.log('Processing DXF file: %s', filePath);
     try {
         const dxfContent = await fs.readFile(filePath, 'utf-8');
         const parser = new DxfParser();
@@ -28,7 +28,7 @@ async function processDXF(filePath) {
             fileName: filePath.split('/').pop()
         };
     } catch (error) {
-        console.error(`Error processing DXF file ${filePath}:`, error);
+        console.error('Error processing DXF file %s:', filePath, error);
         throw error;
     }
 }
@@ -154,7 +154,7 @@ function convertEntityToFeature(entity, idCounter) {
         };
 
     } catch (error) {
-        console.error(`Error processing entity of type ${entity.type}:`, error);
+        console.error('Error processing entity of type %s:', entity.type, error);
         console.log('Problematic entity:', JSON.stringify(entity, null, 2));
         return null;
     }
