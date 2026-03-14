@@ -1,6 +1,7 @@
 const shapefile = require('shapefile');
 const TerraformerWKT = require('terraformer-wkt-parser');
 const fs = require('fs').promises;
+const path = require('path');
 const { decodeDBF } = require('./dbfDecoder');
 const { getEPSG } = require('../utils/epsgHelper');
 const config = require('../config');
@@ -9,9 +10,13 @@ const reprojectionHelper = require('../utils/reprojectionHelper');
 
 
 async function convertShapefileToGeoJSON(shpPath) {
-    console.log(`Zpracování SHP: ${shpPath}`);
+    console.log('Zpracování SHP: %s', shpPath);
+    const resolvedPath = path.resolve(shpPath);
+    if (!resolvedPath.startsWith(path.resolve(config.UPLOAD_DIR))) {
+        throw new Error('Attempt to access file outside of upload directory.');
+    }
     try {
-        const source = await shapefile.open(shpPath);
+        const source = await shapefile.open(resolvedPath);
 
         const features = [];
 
