@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const path = require('path');
 const config = require('../config');
 const prj2epsg = require('prj2epsg');
 const epsgIndex = require('epsg-index/all.json');
@@ -28,10 +29,17 @@ const S_JTSK_VARIANTS = [
 ];
 
 async function getEPSG(filePath, entities = null) {
+    const rootDir = path.resolve(config.UPLOAD_DIR);
+    const resolvedPath = path.resolve(filePath);
+    if (!resolvedPath.startsWith(rootDir)) {
+        console.warn('Invalid file path.');
+        return null;
+    }
+
     const fileExtension = filePath.split('.').pop().toLowerCase();
 
     if (fileExtension === 'shp') {
-        return getEPSGForSHP(filePath);
+        return getEPSGForSHP(resolvedPath);
     } else if (fileExtension === 'dxf') {
         return getEPSGForDXF(entities);
     } else {
@@ -41,12 +49,19 @@ async function getEPSG(filePath, entities = null) {
 }
 
 async function getEPSGForSHP(shpPath) {
+    const rootDir = path.resolve(config.UPLOAD_DIR);
     const prjPath = shpPath.replace('.shp', '.prj');
+    const resolvedPrjPath = path.resolve(prjPath);
+    if (!resolvedPrjPath.startsWith(rootDir)) {
+        console.warn('Invalid PRJ file path.');
+        return null;
+    }
+
     let epsg = null;
 
     try {
         // Načtení obsahu PRJ souboru
-        const prjContent = await fs.readFile(prjPath, 'utf8');
+        const prjContent = await fs.readFile(resolvedPrjPath, 'utf8');
 
         // Získání EPSG kódu pomocí prj2epsg
         const epsgCode = prj2epsg.fromPRJ(prjContent);
